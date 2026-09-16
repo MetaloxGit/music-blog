@@ -8,6 +8,14 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
+# Installation automatique de 'requests' s'il est absent du runner
+try:
+  import requests
+except ImportError:
+  subprocess.check_call([sys.executable, "-m", "pip", "install", "requests"])
+  import requests
+
+
 # --- CONFIGURATION DU DÉPÔT SOURCE ---
 REPO_OWNER = "MetaloxGit"
 REPO_NAME = "music-records"
