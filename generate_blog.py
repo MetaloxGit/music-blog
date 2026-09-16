@@ -302,11 +302,9 @@ def save_history(history):
     json.dump(list(history), f, ensure_ascii=False, indent=2)
 
 
+
 def generate_article_with_ai(artist, products):
-  endpoints = [
-      "https://models.inference.ai.azure.com/chat/completions",
-      "https://models.github.ai/inference/chat/completions",
-  ]
+  url = "https://models.inference.ai.azure.com/chat/completions"
 
   prompt = f"""Tu es un disquaire passionné d'occasion et rédacteur web SEO.
 Rédige un article de blog au format Markdown sur l'artiste ou groupe : {artist}.
@@ -341,27 +339,23 @@ Consignes de rédaction :
   headers = {
       "Content-Type": "application/json",
       "Authorization": f"Bearer {GITHUB_TOKEN}",
-      "User-Agent": (
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Python-Urllib/3.11"
-      ),
+      "User-Agent": "GitHub-Action-Blog-Generator",
   }
 
-  for url in endpoints:
-    try:
-      req = urllib.request.Request(
-          url, data=payload, headers=headers, method="POST"
-      )
-      with urllib.request.urlopen(req, timeout=30) as response:
-        res = json.loads(response.read().decode("utf-8"))
-        return res["choices"][0]["message"]["content"]
-    except Exception as e:
-      print(f"   [Information] Échec d'accès à l'API via {url} : {e}")
-      continue
-
-  raise Exception(
-      "Impossible de contacter l'API d'IA sur l'ensemble des points d'accès"
-      " réseau."
+  req = urllib.request.Request(
+      url, data=payload, headers=headers, method="POST"
   )
+
+  try:
+    with urllib.request.urlopen(req, timeout=60) as response:
+      res = json.loads(response.read().decode("utf-8"))
+      return res["choices"][0]["message"]["content"]
+  except urllib.error.HTTPError as e:
+    error_body = e.read().decode("utf-8", errors="ignore")
+    raise Exception(f"Erreur API ({e.code}) : {error_body}")
+  except Exception as e:
+    raise Exception(f"Échec de connexion réseau : {e}")
+
 
 
 def main():
