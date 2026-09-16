@@ -1,0 +1,6 @@
+title: "Blog Musique & Disques d'Occasion"
+description: "Guides collectors, sélections vinyles, CD et cassettes audio d'époque."
+theme: minima
+
+# Configuration des articles
+permalink: /blog/:title/
