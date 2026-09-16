@@ -330,20 +330,20 @@ Consignes de rédaction :
 6. Ne remets pas de balises de code autour du texte Markdown généré.
 """
 
-  payload = json.dumps({
-      "messages": [
-          {
-              "role": "system",
-              "content": (
-                  "Tu es un spécialiste de la musique d'occasion et de la"
-                  " rédaction SEO."
-              ),
-          },
-          {"role": "user", "content": prompt},
-      ],
-      "model": "google/gemma-4-31b-it:free",
-      "temperature": 0.7,
-  }).encode("utf-8")
+payload = json.dumps({
+        "messages": [
+            {
+                "role": "system",
+                "content": (
+                    "Tu es un spécialiste de la musique d'occasion et de la"
+                    " rédaction SEO."
+                ),
+            },
+            {"role": "user", "content": prompt},
+        ],
+        "model": "openrouter/free",
+        "temperature": 0.7,
+    }).encode("utf-8")
 
   headers = {
       "Content-Type": "application/json",
