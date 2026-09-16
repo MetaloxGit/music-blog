@@ -1,3 +1,4 @@
+import csv
 import io
 import json
 import os
@@ -12,7 +13,9 @@ REPO_NAME = "music-records"
 
 HISTORY_FILE = "processed_artists.json"
 POSTS_DIR = "_posts"
-MIN_PRODUCTS = 2  # Seuil minimal de produits pour générer un article sur un artiste
+MIN_PRODUCTS = (
+    2  # Seuil minimal de produits pour générer un article sur un artiste
+)
 
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 
@@ -23,8 +26,23 @@ def slugify(text):
   return re.sub(r"[-\s]+", "-", text).strip("-")
 
 
-def parse_item(content):
-  """Extrait les données soit d'un objet JSON, soit d'un en-tête YAML Frontmatter."""
+def get_field(item, keys, default=""):
+  if not isinstance(item, dict):
+    return default
+
+  item_lower = {str(k).lower().strip(): v for k, v in item.items()}
+
+  for k in keys:
+    k_lower = k.lower().strip()
+    if k_lower in item_lower and item_lower[k_lower] is not None:
+      val = str(item_lower[k_lower]).strip()
+      if val and val.lower() not in ["none", "null", "undefined", ""]:
+        return val
+  return default
+
+
+def parse_item(content, filename=""):
+  # 1. Tente JSON classique
   try:
     data = json.loads(content)
     if isinstance(data, list):
@@ -34,6 +52,29 @@ def parse_item(content):
   except Exception:
     pass
 
+  # 2. Tente JSON Lines
+  try:
+    lines = [
+        json.loads(line)
+        for line in content.splitlines()
+        if line.strip().startswith("{")
+    ]
+    if lines:
+      return lines
+  except Exception:
+    pass
+
+  # 3. Tente CSV
+  if filename.endswith(".csv") or ("," in content and "\n" in content):
+    try:
+      reader = csv.DictReader(content.splitlines())
+      csv_items = list(reader)
+      if csv_items and len(csv_items[0]) > 1:
+        return csv_items
+    except Exception:
+      pass
+
+  # 4. Tente Frontmatter YAML (Markdown ou HTML)
   match = re.search(r"^---\s*\n(.*?)\n---\s*\n?(.*)", content, re.DOTALL)
   if match:
     yaml_text, body = match.group(1), match.group(2)
@@ -41,17 +82,70 @@ def parse_item(content):
     for line in yaml_text.splitlines():
       if ":" in line:
         k, v = line.split(":", 1)
-        item[k.strip().lower()] = v.strip().strip('"').strip("'")
+        item[k.strip()] = v.strip().strip('"').strip("'")
     item["body"] = body.strip()[:300]
     return [item]
+
+  # 5. Tente HTML (Pages HTML comme item_3138422235.html)
+  if (
+      filename.endswith((".html", ".htm"))
+      or "<html" in content.lower()
+      or "<meta" in content.lower()
+  ):
+    item = {}
+
+    # JSON-LD s'il existe
+    json_ld_matches = re.findall(
+        r'<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+        content,
+        re.DOTALL | re.IGNORECASE,
+    )
+    for json_str in json_ld_matches:
+      try:
+        ld = json.loads(json_str.strip())
+        if isinstance(ld, dict):
+          item.update(ld)
+        elif isinstance(ld, list) and len(ld) > 0 and isinstance(ld[0], dict):
+          item.update(ld[0])
+      except Exception:
+        pass
+
+    # Balises <meta name="..." content="...">
+    meta_matches = re.findall(
+        (
+            r'<meta\s+(?:name|property|itemprop)=["\']([^"\']+)["\']\s+content=["\']([^"\']+)["\']'
+        ),
+        content,
+        re.IGNORECASE,
+    )
+    for meta_name, meta_val in meta_matches:
+      item[meta_name] = meta_val
+
+    meta_matches_inv = re.findall(
+        (
+            r'<meta\s+content=["\']([^"\']+)["\']\s+(?:name|property|itemprop)=["\']([^"\']+)["\']'
+        ),
+        content,
+        re.IGNORECASE,
+    )
+    for meta_val, meta_name in meta_matches_inv:
+      item[meta_name] = meta_val
+
+    # Balise <title>
+    title_match = re.search(r"<title>(.*?)</title>", content, re.IGNORECASE)
+    if title_match and "title" not in item:
+      item["title"] = title_match.group(1).strip()
+
+    # Balise <h1>
+    h1_match = re.search(r"<h1[^>]*>(.*?)</h1>", content, re.IGNORECASE)
+    if h1_match and "h1" not in item:
+      clean_h1 = re.sub(r"<[^>]+>", "", h1_match.group(1)).strip()
+      item["h1"] = clean_h1
+
+    if item:
+      return [item]
+
   return []
-
-
-def get_field(item, keys, default=""):
-  for k in keys:
-    if k in item and item[k]:
-      return str(item[k]).strip()
-  return default
 
 
 def load_products_from_repo():
@@ -78,19 +172,75 @@ def load_products_from_repo():
     return []
 
   products = []
-  # Lecture directe en mémoire sans requêtes réseau individuelles
+  file_extensions = {}
+  sample_files = []
+
   with zipfile.ZipFile(io.BytesIO(zip_bytes)) as z:
-    for filename in z.namelist():
-      if filename.endswith((".json", ".md", ".html")) and "/." not in filename:
+    all_namelist = z.namelist()
+
+    for zip_path in all_namelist:
+      ext = os.path.splitext(zip_path)[1].lower()
+      if ext:
+        file_extensions[ext] = file_extensions.get(ext, 0) + 1
+
+      if "/." in zip_path or zip_path.endswith("/"):
+        continue
+
+      # On retire le dossier racine du ZIP (ex: "music-records-main/") pour avoir le chemin réel
+      parts = zip_path.split("/")
+      rel_path = "/".join(parts[1:]) if len(parts) > 1 else zip_path
+
+      if len(sample_files) < 5 and ext in [
+          ".json",
+          ".md",
+          ".html",
+          ".csv",
+          ".htm",
+          ".txt",
+      ]:
+        sample_files.append(rel_path)
+
+      if ext in [".json", ".md", ".html", ".htm", ".csv", ".txt"]:
         try:
-          with z.open(filename) as f:
+          with z.open(zip_path) as f:
             content = f.read().decode("utf-8", errors="ignore")
-            items = parse_item(content)
+            items = parse_item(content, rel_path)
+
+            default_product_url = (
+                f"https://{REPO_OWNER.lower()}.github.io/{REPO_NAME}/{rel_path}"
+            )
+
             for item in items:
               artist = get_field(
-                  item, ["artist", "artiste", "band", "author", "groupe"]
+                  item,
+                  [
+                      "artist",
+                      "artiste",
+                      "band",
+                      "author",
+                      "groupe",
+                      "byartist",
+                      "brand",
+                  ],
               )
-              title = get_field(item, ["title", "titre", "album", "name"])
+              title = get_field(
+                  item,
+                  [
+                      "title",
+                      "titre",
+                      "album",
+                      "name",
+                      "product_name",
+                      "h1",
+                      "og:title",
+                  ],
+              )
+
+              # Séparation Artiste - Titre si seul le titre est présent
+              if not artist and title and " - " in title:
+                t_parts = title.split(" - ", 1)
+                artist = t_parts[0].strip()
+                title = t_parts[1].strip()
 
               if artist and title:
                 products.append({
@@ -98,28 +248,38 @@ def load_products_from_repo():
                     "title": title,
                     "format": get_field(
                         item,
-                        ["format", "media", "support", "type"],
+                        ["format", "media", "support", "type", "category"],
                         "Support d'occasion",
                     ),
-                    "price": get_field(item, ["price", "prix"], ""),
+                    "price": get_field(
+                        item, ["price", "prix", "amount"], ""
+                    ),
                     "url": get_field(
                         item,
-                        ["url", "link", "lien", "buy_url"],
-                        f"https://{REPO_OWNER.lower()}.github.io/{REPO_NAME}/",
+                        ["url", "link", "lien", "buy_url", "og:url"],
+                        default_product_url,
                     ),
                     "description": get_field(
-                        item, ["description", "body", "summary"], ""
+                        item,
+                        ["description", "body", "summary", "og:description"],
+                        "",
                     )[:200],
                 })
         except Exception:
           continue
 
-  print(f"-> {len(products)} fiches produits chargées en quelques secondes.")
+  print(f"-> {len(products)} fiches produits chargées.")
+
+  if len(products) == 0:
+    print("\n--- DIAGNOSTIC D'ANALYSE ---")
+    print(f"Extensions de fichiers détectées dans le ZIP : {file_extensions}")
+    print(f"Exemples de fichiers trouvés : {sample_files}")
+    print("----------------------------\n")
+
   return products
 
 
 def clean_dead_links(valid_products):
-  """Met à jour les liens des articles existants si le produit a été supprimé."""
   if not Path(POSTS_DIR).exists():
     return
 
