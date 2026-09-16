@@ -341,7 +341,7 @@ Consignes de rédaction :
           },
           {"role": "user", "content": prompt},
       ],
-      "model": "google/gemma-2-9b-it:free",
+      "model": "google/gemma-4-31b-it:free",
       "temperature": 0.7,
   }).encode("utf-8")
 
