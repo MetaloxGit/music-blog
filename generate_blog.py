@@ -307,15 +307,13 @@ def save_history(history):
 
 
 def generate_article_with_ai(artist, products):
-  url = "https://openrouter.ai/api/v1/chat/completions"
-  api_key = os.environ.get("OPENROUTER_API_KEY")
+    url = "https://openrouter.ai/api/v1/chat/completions"
+    api_key = os.environ.get("OPENROUTER_API_KEY")
 
-  if not api_key:
-    raise Exception(
-        "La variable OPENROUTER_API_KEY est manquante dans les Secrets GitHub."
-    )
+    if not api_key:
+        raise Exception("La variable OPENROUTER_API_KEY est manquante dans les Secrets GitHub.")
 
-  prompt = f"""Tu es un disquaire passionné d'occasion et rédacteur web SEO.
+    prompt = f"""Tu es un disquaire passionné d'occasion et rédacteur web SEO.
 Rédige un article de blog au format Markdown sur l'artiste ou groupe : {artist}.
 
 Voici une sélection de ses supports physiques d'occasion actuellement disponibles dans le bac :
@@ -330,41 +328,36 @@ Consignes de rédaction :
 6. Ne remets pas de balises de code autour du texte Markdown généré.
 """
 
-payload = json.dumps({
+    payload = json.dumps({
         "messages": [
             {
                 "role": "system",
-                "content": (
-                    "Tu es un spécialiste de la musique d'occasion et de la"
-                    " rédaction SEO."
-                ),
+                "content": "Tu es un spécialiste de la musique d'occasion et de la rédaction SEO."
             },
-            {"role": "user", "content": prompt},
+            {"role": "user", "content": prompt}
         ],
         "model": "openrouter/free",
-        "temperature": 0.7,
+        "temperature": 0.7
     }).encode("utf-8")
 
-  headers = {
-      "Content-Type": "application/json",
-      "Authorization": f"Bearer {api_key}",
-      "HTTP-Referer": f"https://github.com/{REPO_OWNER}/{REPO_NAME}",
-      "X-Title": "Music Record Blog Generator",
-  }
+    headers = {
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}",
+        "HTTP-Referer": f"https://github.com/{REPO_OWNER}/{REPO_NAME}",
+        "X-Title": "Music Record Blog Generator"
+    }
 
-  req = urllib.request.Request(
-      url, data=payload, headers=headers, method="POST"
-  )
+    req = urllib.request.Request(url, data=payload, headers=headers, method="POST")
 
-  try:
-    with urllib.request.urlopen(req, timeout=60) as response:
-      res = json.loads(response.read().decode("utf-8"))
-      return res["choices"][0]["message"]["content"]
-  except urllib.error.HTTPError as e:
-    error_body = e.read().decode("utf-8", errors="ignore")
-    raise Exception(f"Erreur API ({e.code}) : {error_body}") from e
-  except Exception as e:
-    raise Exception(f"Échec de connexion réseau : {e}") from e
+    try:
+        with urllib.request.urlopen(req, timeout=60) as response:
+            res = json.loads(response.read().decode("utf-8"))
+            return res["choices"][0]["message"]["content"]
+    except urllib.error.HTTPError as e:
+        error_body = e.read().decode("utf-8", errors="ignore")
+        raise Exception(f"Erreur API ({e.code}) : {error_body}") from e
+    except Exception as e:
+        raise Exception(f"Échec de connexion réseau : {e}") from e
 
 
 
