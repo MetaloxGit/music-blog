@@ -304,14 +304,15 @@ def save_history(history):
 
 
 
+
+
 def generate_article_with_ai(artist, products):
-  # API Groq (Gratuite et compatible OpenAI)
-  url = "https://api.groq.com/openai/v1/chat/completions"
-  api_key = os.environ.get("GROQ_API_KEY")
+  url = "https://openrouter.ai/api/v1/chat/completions"
+  api_key = os.environ.get("OPENROUTER_API_KEY")
 
   if not api_key:
     raise Exception(
-        "La variable GROQ_API_KEY est manquante dans les Secrets GitHub."
+        "La variable OPENROUTER_API_KEY est manquante dans les Secrets GitHub."
     )
 
   prompt = f"""Tu es un disquaire passionné d'occasion et rédacteur web SEO.
@@ -340,14 +341,15 @@ Consignes de rédaction :
           },
           {"role": "user", "content": prompt},
       ],
-      "model": "gemma2-9b-it",
+      "model": "meta-llama/llama-3.3-70b-instruct:free",
       "temperature": 0.7,
   }).encode("utf-8")
 
   headers = {
       "Content-Type": "application/json",
       "Authorization": f"Bearer {api_key}",
-      "User-Agent": "GitHub-Action-Blog-Generator",
+      "HTTP-Referer": f"https://github.com/{REPO_OWNER}/{REPO_NAME}",
+      "X-Title": "Music Record Blog Generator",
   }
 
   req = urllib.request.Request(
@@ -363,6 +365,8 @@ Consignes de rédaction :
     raise Exception(f"Erreur API ({e.code}) : {error_body}") from e
   except Exception as e:
     raise Exception(f"Échec de connexion réseau : {e}") from e
+
+
 
 
 
