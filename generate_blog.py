@@ -340,7 +340,7 @@ Consignes de rédaction :
           },
           {"role": "user", "content": prompt},
       ],
-      "model": "llama-3.1-8b-instant",
+      "model": "llama3-8b-8192",
       "temperature": 0.7,
   }).encode("utf-8")
 
