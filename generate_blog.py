@@ -8,6 +8,8 @@ import urllib.request
 import zipfile
 from pathlib import Path
 
+from datetime import datetime
+
 # --- CONFIGURATION DU DÉPÔT SOURCE ---
 REPO_OWNER = "MetaloxGit"
 REPO_NAME = "music-records"
@@ -197,15 +199,15 @@ def load_products_from_repo():
             )
 
             for item in items:
-              artist = get_field(
+               = get_field(
                   item,
                   [
-                      "artist",
-                      "artiste",
+                      "",
+                      "e",
                       "band",
                       "author",
                       "groupe",
-                      "byartist",
+                      "by",
                       "brand",
                   ],
               )
@@ -222,14 +224,14 @@ def load_products_from_repo():
                   ],
               )
 
-              if not artist and title and " - " in title:
+              if not  and title and " - " in title:
                 t_parts = title.split(" - ", 1)
-                artist = t_parts[0].strip()
+                 = t_parts[0].strip()
                 title = t_parts[1].strip()
 
-              if artist and title:
+              if  and title:
                 products.append({
-                    "artist": artist,
+                    "": ,
                     "title": title,
                     "format": get_field(
                         item,
@@ -306,7 +308,7 @@ def save_history(history):
 
 
 
-def generate_article_with_ai(artist, products):
+def generate_article_with_ai(, products):
     url = "https://openrouter.ai/api/v1/chat/completions"
     api_key = os.environ.get("OPENROUTER_API_KEY")
 
@@ -314,16 +316,16 @@ def generate_article_with_ai(artist, products):
         raise Exception("La variable OPENROUTER_API_KEY est manquante dans les Secrets GitHub.")
 
     prompt = f"""Tu es un disquaire passionné d'occasion et rédacteur web SEO.
-Rédige un article de blog au format Markdown sur l'artiste ou groupe : {artist}.
+Rédige un article de blog au format Markdown sur l'e ou groupe : {}.
 
 Voici une sélection de ses supports physiques d'occasion actuellement disponibles dans le bac :
 {json.dumps(products, ensure_ascii=False, indent=2)}
 
 Consignes de rédaction :
 1. Titre principal (H1) accrocheur orienté collection, seconde main et plaisir de l'écoute physique (vinyles, CD, cassettes).
-2. Introduction valorisant l'univers musical de {artist} et l'intérêt d'acquérir ses oeuvres d'époque en support physique d'occasion.
+2. Introduction valorisant l'univers musical de {} et l'intérêt d'acquérir ses oeuvres d'époque en support physique d'occasion.
 3. Pour chaque référence listée : une section H2 avec analyse de l'album/objet, l'atout du format et un bouton d'action Markdown direct vers sa fiche produit : [Découvrir cet exemplaire d'occasion]({{URL_PRODUIT}}).
-4. Conseils pour entretenir et préserver ses disques d'occasion de cet artiste.
+4. Conseils pour entretenir et préserver ses disques d'occasion de cet e.
 5. Vocabulaire précis du secteur (pressage d'époque, master, pochette, vinyle, cassette, état).
 6. Ne remets pas de balises de code autour du texte Markdown généré.
 """
@@ -374,32 +376,35 @@ def main():
 
   grouped = {}
   for p in products:
-    art = p["artist"]
+    art = p[""]
     grouped.setdefault(art, []).append(p)
 
-  target_artist = None
+  target_ = None
   target_products = []
 
-  for artist, items in grouped.items():
-    if artist not in history and len(items) >= MIN_PRODUCTS:
-      target_artist = artist
+  for , items in grouped.items():
+    if  not in history and len(items) >= MIN_PRODUCTS:
+      target_ = 
       target_products = items
       break
 
-  if not target_artist:
-    print("Aucun nouvel artiste éligible à traiter aujourd'hui.")
+  if not target_:
+    print("Aucun nouvel e éligible à traiter aujourd'hui.")
     return
 
   print(
-      f"3. Génération de l'article pour {target_artist} ({len(target_products)}"
+      f"3. Génération de l'article pour {target_} ({len(target_products)}"
       " référence(s))..."
   )
-  content = generate_article_with_ai(target_artist, target_products)
+  content = generate_article_with_ai(target_, target_products)
 
-  Path(POSTS_DIR).mkdir(exist_ok=True)
-  filename = f"{POSTS_DIR}/{slugify(target_artist)}.md"
+Path(POSTS_DIR).mkdir(exist_ok=True)
 
-  full_post = f"""---
+    # Date du jour au format YYYY-MM-DD exigé par Jekyll
+    today_str = datetime.now().strftime("%Y-%m-%d")
+    filename = f"{POSTS_DIR}/{today_str}-{slugify(target_artist)}.md"
+
+    full_post = f"""---
 layout: post
 title: "{target_artist} en vinyles et CD d'occasion : Sélection & Guide collector"
 artist: "{target_artist}"
@@ -408,8 +413,8 @@ artist: "{target_artist}"
 {content}
 """
 
-  with open(filename, "w", encoding="utf-8") as f:
-    f.write(full_post)
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(full_post)
 
   history.add(target_artist)
   save_history(history)
