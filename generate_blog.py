@@ -3,18 +3,21 @@ import io
 import json
 import os
 import re
-import requests  # <-- Ajouter cette ligne
-import urllib.request
-import zipfile
-from pathlib import Path
+import subprocess
+import sys
 
-# Installation automatique de 'requests' s'il est absent du runner
+# 1. Installation automatique de 'requests' avant tout import
 try:
   import requests
 except ImportError:
-  subprocess.check_call([sys.executable, "-m", "pip", "install", "requests"])
+  subprocess.check_call(
+      [sys.executable, "-m", "pip", "install", "--quiet", "requests"]
+  )
   import requests
 
+import urllib.request
+import zipfile
+from pathlib import Path
 
 # --- CONFIGURATION DU DÉPÔT SOURCE ---
 REPO_OWNER = "MetaloxGit"
@@ -168,10 +171,10 @@ def load_products_from_repo():
 
   for branch in ["main", "master"]:
     url = f"https://github.com/{REPO_OWNER}/{REPO_NAME}/archive/refs/heads/{branch}.zip"
-    req = urllib.request.Request(url, headers=headers)
     try:
-      with urllib.request.urlopen(req, timeout=30) as response:
-        zip_bytes = response.read()
+      res = requests.get(url, headers=headers, timeout=30)
+      if res.status_code == 200:
+        zip_bytes = res.content
         print(f"   Archive téléchargée depuis la branche '{branch}'.")
         break
     except Exception as e:
@@ -311,8 +314,6 @@ def save_history(history):
     json.dump(list(history), f, ensure_ascii=False, indent=2)
 
 
-
-
 def generate_article_with_ai(artist, products):
   url = "https://models.inference.ai.azure.com/chat/completions"
 
@@ -360,11 +361,11 @@ Consignes de rédaction :
     res = response.json()
     return res["choices"][0]["message"]["content"]
   except requests.exceptions.HTTPError as e:
-    raise Exception(f"Erreur API ({response.status_code}) : {response.text}")
+    raise Exception(
+        f"Erreur API ({response.status_code}) : {response.text}"
+    ) from e
   except requests.exceptions.RequestException as e:
-    raise Exception(f"Échec de connexion réseau : {e}")
-
-
+    raise Exception(f"Échec de connexion réseau : {e}") from e
 
 
 def main():
