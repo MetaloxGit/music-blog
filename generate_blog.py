@@ -303,9 +303,16 @@ def save_history(history):
     json.dump(list(history), f, ensure_ascii=False, indent=2)
 
 
+
 def generate_article_with_ai(artist, products):
-  # Endpoint officiel GitHub Models
-  url = "https://models.github.ai/inference/chat/completions"
+  # API Groq (Gratuite et compatible OpenAI)
+  url = "https://api.groq.com/openai/v1/chat/completions"
+  api_key = os.environ.get("GROQ_API_KEY")
+
+  if not api_key:
+    raise Exception(
+        "La variable GROQ_API_KEY est manquante dans les Secrets GitHub."
+    )
 
   prompt = f"""Tu es un disquaire passionné d'occasion et rédacteur web SEO.
 Rédige un article de blog au format Markdown sur l'artiste ou groupe : {artist}.
@@ -333,13 +340,13 @@ Consignes de rédaction :
           },
           {"role": "user", "content": prompt},
       ],
-      "model": "gpt-4o-mini",
+      "model": "llama-3.3-70b-versatile",
       "temperature": 0.7,
   }).encode("utf-8")
 
   headers = {
       "Content-Type": "application/json",
-      "Authorization": f"Bearer {GITHUB_TOKEN}",
+      "Authorization": f"Bearer {api_key}",
       "User-Agent": "GitHub-Action-Blog-Generator",
   }
 
@@ -353,9 +360,10 @@ Consignes de rédaction :
       return res["choices"][0]["message"]["content"]
   except urllib.error.HTTPError as e:
     error_body = e.read().decode("utf-8", errors="ignore")
-    raise Exception(f"Erreur API ({e.code}) : {error_body}")
+    raise Exception(f"Erreur API ({e.code}) : {error_body}") from e
   except Exception as e:
-    raise Exception(f"Échec de connexion réseau : {e}")
+    raise Exception(f"Échec de connexion réseau : {e}") from e
+
 
 
 def main():
