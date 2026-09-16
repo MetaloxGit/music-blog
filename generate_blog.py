@@ -3,6 +3,7 @@ import io
 import json
 import os
 import re
+import requests  # <-- Ajouter cette ligne
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -303,6 +304,7 @@ def save_history(history):
 
 
 
+
 def generate_article_with_ai(artist, products):
   url = "https://models.inference.ai.azure.com/chat/completions"
 
@@ -321,7 +323,7 @@ Consignes de rédaction :
 6. Ne remets pas de balises de code autour du texte Markdown généré.
 """
 
-  payload = json.dumps({
+  payload = {
       "messages": [
           {
               "role": "system",
@@ -334,7 +336,7 @@ Consignes de rédaction :
       ],
       "model": "gpt-4o-mini",
       "temperature": 0.7,
-  }).encode("utf-8")
+  }
 
   headers = {
       "Content-Type": "application/json",
@@ -342,19 +344,18 @@ Consignes de rédaction :
       "User-Agent": "GitHub-Action-Blog-Generator",
   }
 
-  req = urllib.request.Request(
-      url, data=payload, headers=headers, method="POST"
-  )
-
   try:
-    with urllib.request.urlopen(req, timeout=60) as response:
-      res = json.loads(response.read().decode("utf-8"))
-      return res["choices"][0]["message"]["content"]
-  except urllib.error.HTTPError as e:
-    error_body = e.read().decode("utf-8", errors="ignore")
-    raise Exception(f"Erreur API ({e.code}) : {error_body}")
-  except Exception as e:
+    response = requests.post(
+        url, json=payload, headers=headers, timeout=60
+    )
+    response.raise_for_status()
+    res = response.json()
+    return res["choices"][0]["message"]["content"]
+  except requests.exceptions.HTTPError as e:
+    raise Exception(f"Erreur API ({response.status_code}) : {response.text}")
+  except requests.exceptions.RequestException as e:
     raise Exception(f"Échec de connexion réseau : {e}")
+
 
 
 
