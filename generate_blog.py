@@ -3,31 +3,7 @@ import io
 import json
 import os
 import re
-import subprocess
-import sys
-
-
-# Correctif DNS IPv4
-_old_getaddrinfo = socket.getaddrinfo
-
-
-def _getaddrinfo_ipv4(*args, **kwargs):
-  responses = _old_getaddrinfo(*args, **kwargs)
-  return [r for r in responses if r[0] == socket.AF_INET]
-
-
-socket.getaddrinfo = _getaddrinfo_ipv4
-
-
-# 1. Installation automatique de 'requests' avant tout import
-try:
-  import requests
-except ImportError:
-  subprocess.check_call(
-      [sys.executable, "-m", "pip", "install", "--quiet", "requests"]
-  )
-  import requests
-
+import urllib.error
 import urllib.request
 import zipfile
 from pathlib import Path
@@ -111,7 +87,7 @@ def parse_item(content, filename=""):
     item["body"] = body.strip()[:300]
     return [item]
 
-  # 5. Tente HTML (Pages HTML comme item_3138422235.html)
+  # 5. Tente HTML
   if (
       filename.endswith((".html", ".htm"))
       or "<html" in content.lower()
@@ -185,9 +161,9 @@ def load_products_from_repo():
   for branch in ["main", "master"]:
     url = f"https://github.com/{REPO_OWNER}/{REPO_NAME}/archive/refs/heads/{branch}.zip"
     try:
-      res = requests.get(url, headers=headers, timeout=30)
-      if res.status_code == 200:
-        zip_bytes = res.content
+      req = urllib.request.Request(url, headers=headers)
+      with urllib.request.urlopen(req, timeout=30) as res:
+        zip_bytes = res.read()
         print(f"   Archive téléchargée depuis la branche '{branch}'.")
         break
     except Exception as e:
@@ -328,7 +304,8 @@ def save_history(history):
 
 
 def generate_article_with_ai(artist, products):
-  url = "https://models.inference.ai.azure.com/chat/completions"
+  # Endpoint officiel GitHub Models
+  url = "https://models.github.ai/inference/chat/completions"
 
   prompt = f"""Tu es un disquaire passionné d'occasion et rédacteur web SEO.
 Rédige un article de blog au format Markdown sur l'artiste ou groupe : {artist}.
@@ -345,7 +322,7 @@ Consignes de rédaction :
 6. Ne remets pas de balises de code autour du texte Markdown généré.
 """
 
-  payload = {
+  payload = json.dumps({
       "messages": [
           {
               "role": "system",
@@ -358,7 +335,7 @@ Consignes de rédaction :
       ],
       "model": "gpt-4o-mini",
       "temperature": 0.7,
-  }
+  }).encode("utf-8")
 
   headers = {
       "Content-Type": "application/json",
@@ -366,19 +343,19 @@ Consignes de rédaction :
       "User-Agent": "GitHub-Action-Blog-Generator",
   }
 
+  req = urllib.request.Request(
+      url, data=payload, headers=headers, method="POST"
+  )
+
   try:
-    response = requests.post(
-        url, json=payload, headers=headers, timeout=60
-    )
-    response.raise_for_status()
-    res = response.json()
-    return res["choices"][0]["message"]["content"]
-  except requests.exceptions.HTTPError as e:
-    raise Exception(
-        f"Erreur API ({response.status_code}) : {response.text}"
-    ) from e
-  except requests.exceptions.RequestException as e:
-    raise Exception(f"Échec de connexion réseau : {e}") from e
+    with urllib.request.urlopen(req, timeout=60) as response:
+      res = json.loads(response.read().decode("utf-8"))
+      return res["choices"][0]["message"]["content"]
+  except urllib.error.HTTPError as e:
+    error_body = e.read().decode("utf-8", errors="ignore")
+    raise Exception(f"Erreur API ({e.code}) : {error_body}")
+  except Exception as e:
+    raise Exception(f"Échec de connexion réseau : {e}")
 
 
 def main():
