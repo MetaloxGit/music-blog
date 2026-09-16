@@ -6,6 +6,19 @@ import re
 import subprocess
 import sys
 
+
+# Correctif DNS IPv4
+_old_getaddrinfo = socket.getaddrinfo
+
+
+def _getaddrinfo_ipv4(*args, **kwargs):
+  responses = _old_getaddrinfo(*args, **kwargs)
+  return [r for r in responses if r[0] == socket.AF_INET]
+
+
+socket.getaddrinfo = _getaddrinfo_ipv4
+
+
 # 1. Installation automatique de 'requests' avant tout import
 try:
   import requests
