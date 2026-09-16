@@ -74,7 +74,7 @@ def parse_item(content, filename=""):
     except Exception:
       pass
 
-  # 4. Tente Frontmatter YAML (Markdown ou HTML)
+  # 4. Tente Frontmatter YAML
   match = re.search(r"^---\s*\n(.*?)\n---\s*\n?(.*)", content, re.DOTALL)
   if match:
     yaml_text, body = match.group(1), match.group(2)
@@ -94,7 +94,6 @@ def parse_item(content, filename=""):
   ):
     item = {}
 
-    # JSON-LD s'il existe
     json_ld_matches = re.findall(
         r'<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
         content,
@@ -110,7 +109,6 @@ def parse_item(content, filename=""):
       except Exception:
         pass
 
-    # Balises <meta name="..." content="...">
     meta_matches = re.findall(
         (
             r'<meta\s+(?:name|property|itemprop)=["\']([^"\']+)["\']\s+content=["\']([^"\']+)["\']'
@@ -131,12 +129,10 @@ def parse_item(content, filename=""):
     for meta_val, meta_name in meta_matches_inv:
       item[meta_name] = meta_val
 
-    # Balise <title>
     title_match = re.search(r"<title>(.*?)</title>", content, re.IGNORECASE)
     if title_match and "title" not in item:
       item["title"] = title_match.group(1).strip()
 
-    # Balise <h1>
     h1_match = re.search(r"<h1[^>]*>(.*?)</h1>", content, re.IGNORECASE)
     if h1_match and "h1" not in item:
       clean_h1 = re.sub(r"<[^>]+>", "", h1_match.group(1)).strip()
@@ -155,11 +151,17 @@ def load_products_from_repo():
   )
 
   zip_bytes = None
+  headers = {
+      "User-Agent": (
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Python-Urllib/3.11"
+      )
+  }
+
   for branch in ["main", "master"]:
     url = f"https://github.com/{REPO_OWNER}/{REPO_NAME}/archive/refs/heads/{branch}.zip"
-    req = urllib.request.Request(url, headers={"User-Agent": "Python-Script"})
+    req = urllib.request.Request(url, headers=headers)
     try:
-      with urllib.request.urlopen(req) as response:
+      with urllib.request.urlopen(req, timeout=30) as response:
         zip_bytes = response.read()
         print(f"   Archive téléchargée depuis la branche '{branch}'.")
         break
@@ -172,33 +174,16 @@ def load_products_from_repo():
     return []
 
   products = []
-  file_extensions = {}
-  sample_files = []
-
   with zipfile.ZipFile(io.BytesIO(zip_bytes)) as z:
     all_namelist = z.namelist()
 
     for zip_path in all_namelist:
       ext = os.path.splitext(zip_path)[1].lower()
-      if ext:
-        file_extensions[ext] = file_extensions.get(ext, 0) + 1
-
       if "/." in zip_path or zip_path.endswith("/"):
         continue
 
-      # On retire le dossier racine du ZIP (ex: "music-records-main/") pour avoir le chemin réel
       parts = zip_path.split("/")
       rel_path = "/".join(parts[1:]) if len(parts) > 1 else zip_path
-
-      if len(sample_files) < 5 and ext in [
-          ".json",
-          ".md",
-          ".html",
-          ".csv",
-          ".htm",
-          ".txt",
-      ]:
-        sample_files.append(rel_path)
 
       if ext in [".json", ".md", ".html", ".htm", ".csv", ".txt"]:
         try:
@@ -236,7 +221,6 @@ def load_products_from_repo():
                   ],
               )
 
-              # Séparation Artiste - Titre si seul le titre est présent
               if not artist and title and " - " in title:
                 t_parts = title.split(" - ", 1)
                 artist = t_parts[0].strip()
@@ -269,13 +253,6 @@ def load_products_from_repo():
           continue
 
   print(f"-> {len(products)} fiches produits chargées.")
-
-  if len(products) == 0:
-    print("\n--- DIAGNOSTIC D'ANALYSE ---")
-    print(f"Extensions de fichiers détectées dans le ZIP : {file_extensions}")
-    print(f"Exemples de fichiers trouvés : {sample_files}")
-    print("----------------------------\n")
-
   return products
 
 
@@ -326,7 +303,10 @@ def save_history(history):
 
 
 def generate_article_with_ai(artist, products):
-  url = "https://models.inference.ai.azure.com/chat/completions"
+  endpoints = [
+      "https://models.inference.ai.azure.com/chat/completions",
+      "https://models.github.ai/inference/chat/completions",
+  ]
 
   prompt = f"""Tu es un disquaire passionné d'occasion et rédacteur web SEO.
 Rédige un article de blog au format Markdown sur l'artiste ou groupe : {artist}.
@@ -361,12 +341,27 @@ Consignes de rédaction :
   headers = {
       "Content-Type": "application/json",
       "Authorization": f"Bearer {GITHUB_TOKEN}",
+      "User-Agent": (
+          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Python-Urllib/3.11"
+      ),
   }
 
-  req = urllib.request.Request(url, data=payload, headers=headers, method="POST")
-  with urllib.request.urlopen(req) as response:
-    res = json.loads(response.read().decode("utf-8"))
-    return res["choices"][0]["message"]["content"]
+  for url in endpoints:
+    try:
+      req = urllib.request.Request(
+          url, data=payload, headers=headers, method="POST"
+      )
+      with urllib.request.urlopen(req, timeout=30) as response:
+        res = json.loads(response.read().decode("utf-8"))
+        return res["choices"][0]["message"]["content"]
+    except Exception as e:
+      print(f"   [Information] Échec d'accès à l'API via {url} : {e}")
+      continue
+
+  raise Exception(
+      "Impossible de contacter l'API d'IA sur l'ensemble des points d'accès"
+      " réseau."
+  )
 
 
 def main():
@@ -376,7 +371,6 @@ def main():
     return
 
   clean_dead_links(products)
-
   history = load_history()
 
   grouped = {}
