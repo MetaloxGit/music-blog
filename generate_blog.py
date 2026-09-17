@@ -446,7 +446,7 @@ def main():
 
     full_post = f"""---
 layout: post
-title: "{target_artist} en vinyles ou CD d'occasion (collector)"
+title: "{target_artist} en vinyle ou CD d'occasion (collector)"
 artist: "{target_artist}"
 ---
 
