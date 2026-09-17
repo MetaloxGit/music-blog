@@ -326,7 +326,7 @@ def generate_article_with_ai(artist, products):
         for p in products[:10]
     ]
 
-    prompt = f"""Tu es un disquaire professionnel expert et rédacteur SEO factuel.
+    prompt = f"""Tu es un disquaire d'occasion spécialiste des supports physiques d'époque et rédacteur SEO factuel.
 Rédige un article de blog au format Markdown sur l'artiste ou groupe : {artist}.
 
 Voici la liste EXACTE des produits physiques disponibles en stock (utilise STRICTEMENT ces données) :
@@ -340,7 +340,8 @@ Voici la liste EXACTE des produits physiques disponibles en stock (utilise STRIC
 
 2. **RIGUEUR FACTUELLE ET HISTORIQUE (INTERDICTION D'INVENTER)** :
    - Tu ne dois mentionner que des informations musicales et historiques 100% incontestables sur {artist} (genre musical principal, notoriété générale, pertinence du format vinyle/CD/cassette).
-   - N'INVENTE AUCUNE anecdote personnelle, date précise de studio, numéro de matrice/pressage, tracklist détaillée ou nom de producteur à moins d'en être 100% certain. Si une information n'est pas certaine, reste généraliste et axé sur le plaisir d'écoute et l'objet physique.
+   - N'invente AUCUNE biographie de groupe. Si l'entité concerne un artiste peu documenté, parle uniquement du disque, de son pressage et du plaisir de chiner ce type d'enregistrement d'époque.
+   - Ne catégorise PAS cet enregistrement dans un style musical précis si ce n'est pas explicitement mentionné dans le titre ou la description fournie.
 
 3. **STRUCTURE DU CONTENU** :
    - Titre principal H1 : Accrocheur, orienté collection, seconde main et plaisir de l'écoute physique.
