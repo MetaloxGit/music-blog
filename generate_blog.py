@@ -353,7 +353,7 @@ Voici la liste EXACTE des produits physiques disponibles en stock (utilise STRIC
    - Ne rajoute PAS de balises de code autour du texte Markdown généré (ne mets pas de ```markdown au début ou à la fin).
 """
 
-candidate_models = [
+    candidate_models = [
         "google/gemini-2.0-flash-lite-001:free",
         "meta-llama/llama-3.3-70b-instruct:free",
         "qwen/qwen-2.5-72b-instruct:free",
@@ -366,7 +366,7 @@ candidate_models = [
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}",
-        "HTTP-Referer": f"[https://github.com/](https://github.com/){REPO_OWNER}/{REPO_NAME}",
+        "HTTP-Referer": f"https://github.com/{REPO_OWNER}/{REPO_NAME}",
         "X-Title": "Music Record Blog Generator",
     }
 
