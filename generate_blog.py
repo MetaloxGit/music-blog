@@ -46,8 +46,12 @@ def get_field(item, keys, default=""):
     return default
 
 
+
 def parse_item(content, rel_path):
     items = []
+    filename = os.path.basename(rel_path)
+
+    # 1. Gestion des fichiers JSON s'il y en a
     if rel_path.endswith(".json"):
         try:
             data = json.loads(content)
@@ -57,6 +61,63 @@ def parse_item(content, rel_path):
                 items = [data]
         except Exception:
             pass
+
+    # 2. Extraction des métadonnées depuis les fiches HTML (item_*.html)
+    elif rel_path.endswith((".html", ".htm")):
+        if not filename.startswith("item_"):
+            return []
+
+        item = {}
+
+        # Extraction d'éventuelles données structurelles JSON-LD
+        json_ld_matches = re.findall(
+            r'<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
+            content,
+            re.DOTALL | re.IGNORECASE,
+        )
+        for jmatch in json_ld_matches:
+            try:
+                data = json.loads(jmatch.strip())
+                if isinstance(data, dict):
+                    item.update(data)
+            except Exception:
+                pass
+
+        # Extraction des balises <meta> (og:title, artist, price, description...)
+        metas = re.findall(
+            r'<meta\s+(?:name|property)=["\']([^"\']+)["\']\s+content=["\']([^"\']*)["\']',
+            content,
+            re.IGNORECASE,
+        )
+        for name, val in metas:
+            item[name.lower()] = val.strip()
+
+        metas_rev = re.findall(
+            r'<meta\s+content=["\']([^"\']*)["\']\s+(?:name|property)=["\']([^"\']+)["\']',
+            content,
+            re.IGNORECASE,
+        )
+        for val, name in metas_rev:
+            item[name.lower()] = val.strip()
+
+        # Secours : extraction de la balise <title> ou <h1> si les metas manquent
+        if "title" not in item and "og:title" not in item:
+            t_match = re.search(
+                r'<title[^>]*>(.*?)</title>', content, re.IGNORECASE | re.DOTALL
+            )
+            if t_match:
+                item["title"] = t_match.group(1).strip()
+
+        if "h1" not in item:
+            h1_match = re.search(
+                r'<h1[^>]*>(.*?)</h1>', content, re.IGNORECASE | re.DOTALL
+            )
+            if h1_match:
+                item["h1"] = re.sub(r"<[^>]+>", "", h1_match.group(1)).strip()
+
+        if item:
+            items.append(item)
+
     return items
 
 
@@ -99,13 +160,16 @@ def load_products_from_repo():
 
         for zip_path in all_namelist:
             ext = os.path.splitext(zip_path)[1].lower()
-            if "/." in zip_path or zip_path.endswith("/"):
+            filename = os.path.basename(zip_path)
+
+            # Ne traiter que les fichiers HTML produits (item_*.html) ou les JSON
+            if ext in [".html", ".htm"] and not filename.startswith("item_"):
                 continue
 
-            parts = zip_path.split("/")
-            rel_path = "/".join(parts[1:]) if len(parts) > 1 else zip_path
+            if ext in [".json", ".html", ".htm"]:
+                parts = zip_path.split("/")
+                rel_path = "/".join(parts[1:]) if len(parts) > 1 else zip_path
 
-            if ext in [".json", ".md", ".html", ".htm", ".csv", ".txt"]:
                 try:
                     with z.open(zip_path) as f:
                         content = f.read().decode("utf-8", errors="ignore")
@@ -174,6 +238,7 @@ def load_products_from_repo():
 
     print(f"-> {len(products)} fiches produits chargées.")
     return products
+
 
 
 def generate_article_with_ai(artist, products):
