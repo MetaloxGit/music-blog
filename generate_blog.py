@@ -9,11 +9,11 @@ from datetime import datetime
 
 # Configurations
 # Détection automatique du dépôt sur GitHub Actions
-github_repo = os.getenv("GITHUB_REPOSITORY", "metaloxgit/music-records")
+github_repo = os.getenv("GITHUB_REPOSITORY", "MetaloxGit/music-records")
 if "/" in github_repo:
     REPO_OWNER, REPO_NAME = github_repo.split("/", 1)
 else:
-    REPO_OWNER = "metaloxgit"
+    REPO_OWNER = "MetaloxGit"
     REPO_NAME = "music-records"
 MIN_PRODUCTS = 1
 POSTS_DIR = "_posts"
