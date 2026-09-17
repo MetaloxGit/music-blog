@@ -148,115 +148,115 @@ def parse_item(content, filename=""):
 
 
 def load_products_from_repo():
-  print(
-      "1. Téléchargement rapide de l'archive ZIP"
-      f" ({REPO_OWNER}/{REPO_NAME})..."
-  )
+    print(
+        "1. Téléchargement rapide de l'archive ZIP"
+        f" ({REPO_OWNER}/{REPO_NAME})..."
+    )
 
-  zip_bytes = None
-  headers = {
-      "User-Agent": (
-          "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Python-Urllib/3.11"
-      )
-  }
+    zip_bytes = None
+    headers = {
+        "User-Agent": (
+            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) Python-Urllib/3.11"
+        )
+    }
 
-  for branch in ["main", "master"]:
-    url = f"https://github.com/{REPO_OWNER}/{REPO_NAME}/archive/refs/heads/{branch}.zip"
-    try:
-      req = urllib.request.Request(url, headers=headers)
-      with urllib.request.urlopen(req, timeout=30) as res:
-        zip_bytes = res.read()
-        print(f"   Archive téléchargée depuis la branche '{branch}'.")
-        break
-    except Exception as e:
-      print(f"   Échec sur la branche '{branch}': {e}")
-      continue
-
-  if not zip_bytes:
-    print("Erreur : Impossible de télécharger l'archive du dépôt source.")
-    return []
-
-  products = []
-  with zipfile.ZipFile(io.BytesIO(zip_bytes)) as z:
-    all_namelist = z.namelist()
-
-    for zip_path in all_namelist:
-      ext = os.path.splitext(zip_path)[1].lower()
-      if "/." in zip_path or zip_path.endswith("/"):
-        continue
-
-      parts = zip_path.split("/")
-      rel_path = "/".join(parts[1:]) if len(parts) > 1 else zip_path
-
-      if ext in [".json", ".md", ".html", ".htm", ".csv", ".txt"]:
+    for branch in ["main", "master"]:
+        url = f"https://github.com/{REPO_OWNER}/{REPO_NAME}/archive/refs/heads/{branch}.zip"
         try:
-          with z.open(zip_path) as f:
-            content = f.read().decode("utf-8", errors="ignore")
-            items = parse_item(content, rel_path)
+            req = urllib.request.Request(url, headers=headers)
+            with urllib.request.urlopen(req, timeout=30) as res:
+                zip_bytes = res.read()
+                print(f"   Archive téléchargée depuis la branche '{branch}'.")
+                break
+        except Exception as e:
+            print(f"   Échec sur la branche '{branch}': {e}")
+            continue
 
-            default_product_url = (
-                f"https://{REPO_OWNER.lower()}.github.io/{REPO_NAME}/{rel_path}"
-            )
+    if not zip_bytes:
+        print("Erreur : Impossible de télécharger l'archive du dépôt source.")
+        return []
 
-            for item in items:
-                artist = get_field(
-                    item,
-                    [
-                        "artist",
-                        "artiste",
-                        "band",
-                        "author",
-                        "groupe",
-                        "by",
-                        "brand",
-                    ],
-                )
-                title = get_field(
-                    item,
-                    [
-                        "title",
-                        "titre",
-                        "album",
-                        "name",
-                        "product_name",
-                        "h1",
-                        "og:title",
-                    ],
-                )
+    products = []
+    with zipfile.ZipFile(io.BytesIO(zip_bytes)) as z:
+        all_namelist = z.namelist()
 
-              if not  and title and " - " in title:
-                t_parts = title.split(" - ", 1)
-                 = t_parts[0].strip()
-                title = t_parts[1].strip()
+        for zip_path in all_namelist:
+            ext = os.path.splitext(zip_path)[1].lower()
+            if "/." in zip_path or zip_path.endswith("/"):
+                continue
 
-              if  and title:
-                products.append({
-                    "": ,
-                    "title": title,
-                    "format": get_field(
-                        item,
-                        ["format", "media", "support", "type", "category"],
-                        "Support d'occasion",
-                    ),
-                    "price": get_field(
-                        item, ["price", "prix", "amount"], ""
-                    ),
-                    "url": get_field(
-                        item,
-                        ["url", "link", "lien", "buy_url", "og:url"],
-                        default_product_url,
-                    ),
-                    "description": get_field(
-                        item,
-                        ["description", "body", "summary", "og:description"],
-                        "",
-                    )[:200],
-                })
-        except Exception:
-          continue
+            parts = zip_path.split("/")
+            rel_path = "/".join(parts[1:]) if len(parts) > 1 else zip_path
 
-  print(f"-> {len(products)} fiches produits chargées.")
-  return products
+            if ext in [".json", ".md", ".html", ".htm", ".csv", ".txt"]:
+                try:
+                    with z.open(zip_path) as f:
+                        content = f.read().decode("utf-8", errors="ignore")
+                        items = parse_item(content, rel_path)
+
+                        default_product_url = (
+                            f"https://{REPO_OWNER.lower()}.github.io/{REPO_NAME}/{rel_path}"
+                        )
+
+                        for item in items:
+                            artist = get_field(
+                                item,
+                                [
+                                    "artist",
+                                    "artiste",
+                                    "band",
+                                    "author",
+                                    "groupe",
+                                    "by",
+                                    "brand",
+                                ],
+                            )
+                            title = get_field(
+                                item,
+                                [
+                                    "title",
+                                    "titre",
+                                    "album",
+                                    "name",
+                                    "product_name",
+                                    "h1",
+                                    "og:title",
+                                ],
+                            )
+
+                            if not artist and title and " - " in title:
+                                t_parts = title.split(" - ", 1)
+                                artist = t_parts[0].strip()
+                                title = t_parts[1].strip()
+
+                            if artist and title:
+                                products.append({
+                                    "artist": artist,
+                                    "title": title,
+                                    "format": get_field(
+                                        item,
+                                        ["format", "media", "support", "type", "category"],
+                                        "Support d'occasion",
+                                    ),
+                                    "price": get_field(
+                                        item, ["price", "prix", "amount"], ""
+                                    ),
+                                    "url": get_field(
+                                        item,
+                                        ["url", "link", "lien", "buy_url", "og:url"],
+                                        default_product_url,
+                                    ),
+                                    "description": get_field(
+                                        item,
+                                        ["description", "body", "summary", "og:description"],
+                                        "",
+                                    )[:200],
+                                })
+                except Exception:
+                    continue
+
+    print(f"-> {len(products)} fiches produits chargées.")
+    return products
 
 
 def clean_dead_links(valid_products):
