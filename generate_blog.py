@@ -1,20 +1,23 @@
-import os
+import csv
 import io
 import json
+import os
 import re
+import urllib.error
 import urllib.request
 import zipfile
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
-# Configurations
-# Dépôt source contenant les fiches produits (music-records)
+# --- CONFIGURATION DU DÉPÔT SOURCE ---
 REPO_OWNER = "MetaloxGit"
 REPO_NAME = "music-records"
-MIN_PRODUCTS = 1
-POSTS_DIR = "_posts"
+
 HISTORY_FILE = "history.json"
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+POSTS_DIR = "_posts"
+MIN_PRODUCTS = 1  # Seuil minimal de produits pour un artiste
+
+GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 
 
 def slugify(text):
@@ -23,106 +26,118 @@ def slugify(text):
     return re.sub(r"[-\s]+", "-", text).strip("-")
 
 
-def load_history():
-    if os.path.exists(HISTORY_FILE):
-        try:
-            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
-                return set(json.load(f))
-        except Exception:
-            return set()
-    return set()
-
-
-def save_history(history):
-    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
-        json.dump(list(history), f, ensure_ascii=False, indent=2)
-
-
 def get_field(item, keys, default=""):
-    if isinstance(item, dict):
-        for k in keys:
-            if k in item and item[k]:
-                return str(item[k]).strip()
+    if not isinstance(item, dict):
+        return default
+
+    item_lower = {str(k).lower().strip(): v for k, v in item.items()}
+
+    for k in keys:
+        k_lower = k.lower().strip()
+        if k_lower in item_lower and item_lower[k_lower] is not None:
+            val = str(item_lower[k_lower]).strip()
+            if val and val.lower() not in ["none", "null", "undefined", ""]:
+                return val
     return default
 
 
+def parse_item(content, filename=""):
+    # 1. Tente JSON classique
+    try:
+        data = json.loads(content)
+        if isinstance(data, list):
+            return data
+        elif isinstance(data, dict):
+            return [data]
+    except Exception:
+        pass
 
-def parse_item(content, rel_path):
-    items = []
-    filename = os.path.basename(rel_path)
+    # 2. Tente JSON Lines
+    try:
+        lines = [
+            json.loads(line)
+            for line in content.splitlines()
+            if line.strip().startswith("{")
+        ]
+        if lines:
+            return lines
+    except Exception:
+        pass
 
-    # 1. Gestion des fichiers JSON s'il y en a
-    if rel_path.endswith(".json"):
+    # 3. Tente CSV
+    if filename.endswith(".csv") or ("," in content and "\n" in content):
         try:
-            data = json.loads(content)
-            if isinstance(data, list):
-                items = data
-            elif isinstance(data, dict):
-                items = [data]
+            reader = csv.DictReader(content.splitlines())
+            csv_items = list(reader)
+            if csv_items and len(csv_items[0]) > 1:
+                return csv_items
         except Exception:
             pass
 
-    # 2. Extraction des métadonnées depuis les fiches HTML (item_*.html)
-    elif rel_path.endswith((".html", ".htm")):
-        if not filename.startswith("item_"):
-            return []
+    # 4. Tente Frontmatter YAML
+    match = re.search(r"^---\s*\n(.*?)\n---\s*\n?(.*)", content, re.DOTALL)
+    if match:
+        yaml_text, body = match.group(1), match.group(2)
+        item = {}
+        for line in yaml_text.splitlines():
+            if ":" in line:
+                k, v = line.split(":", 1)
+                item[k.strip()] = v.strip().strip('"').strip("'")
+        item["body"] = body.strip()[:300]
+        return [item]
 
+    # 5. Tente HTML
+    if (
+        filename.endswith((".html", ".htm"))
+        or "<html" in content.lower()
+        or "<meta" in content.lower()
+    ):
         item = {}
 
-        # Extraction d'éventuelles données structurelles JSON-LD
         json_ld_matches = re.findall(
             r'<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
             content,
             re.DOTALL | re.IGNORECASE,
         )
-        for jmatch in json_ld_matches:
+        for json_str in json_ld_matches:
             try:
-                data = json.loads(jmatch.strip())
-                if isinstance(data, dict):
-                    item.update(data)
+                ld = json.loads(json_str.strip())
+                if isinstance(ld, dict):
+                    item.update(ld)
+                elif isinstance(ld, list) and len(ld) > 0 and isinstance(ld[0], dict):
+                    item.update(ld[0])
             except Exception:
                 pass
 
-        # Extraction des balises <meta> (og:title, artist, price, description...)
-        metas = re.findall(
-            r'<meta\s+(?:name|property)=["\']([^"\']+)["\']\s+content=["\']([^"\']*)["\']',
+        meta_matches = re.findall(
+            r'<meta\s+(?:name|property|itemprop)=["\']([^"\']+)["\']\s+content=["\']([^"\']+)["\']',
             content,
             re.IGNORECASE,
         )
-        for name, val in metas:
-            item[name.lower()] = val.strip()
+        for meta_name, meta_val in meta_matches:
+            item[meta_name] = meta_val
 
-        metas_rev = re.findall(
-            r'<meta\s+content=["\']([^"\']*)["\']\s+(?:name|property)=["\']([^"\']+)["\']',
+        meta_matches_inv = re.findall(
+            r'<meta\s+content=["\']([^"\']+)["\']\s+(?:name|property|itemprop)=["\']([^"\']+)["\']',
             content,
             re.IGNORECASE,
         )
-        for val, name in metas_rev:
-            item[name.lower()] = val.strip()
+        for meta_val, meta_name in meta_matches_inv:
+            item[meta_name] = meta_val
 
-        # Secours : extraction de la balise <title> ou <h1> si les metas manquent
-        if "title" not in item and "og:title" not in item:
-            t_match = re.search(
-                r'<title[^>]*>(.*?)</title>', content, re.IGNORECASE | re.DOTALL
-            )
-            if t_match:
-                item["title"] = t_match.group(1).strip()
+        title_match = re.search(r"<title>(.*?)</title>", content, re.IGNORECASE)
+        if title_match and "title" not in item:
+            item["title"] = title_match.group(1).strip()
 
-        if "h1" not in item:
-            h1_match = re.search(
-                r'<h1[^>]*>(.*?)</h1>', content, re.IGNORECASE | re.DOTALL
-            )
-            if h1_match:
-                item["h1"] = re.sub(r"<[^>]+>", "", h1_match.group(1)).strip()
+        h1_match = re.search(r"<h1[^>]*>(.*?)</h1>", content, re.IGNORECASE)
+        if h1_match and "h1" not in item:
+            clean_h1 = re.sub(r"<[^>]+>", "", h1_match.group(1)).strip()
+            item["h1"] = clean_h1
 
         if item:
-            items.append(item)
+            return [item]
 
-    return items
-
-
-def clean_dead_links(products):
-    pass
+    return []
 
 
 def load_products_from_repo():
@@ -162,14 +177,16 @@ def load_products_from_repo():
             ext = os.path.splitext(zip_path)[1].lower()
             filename = os.path.basename(zip_path)
 
-            # Ne traiter que les fichiers HTML produits (item_*.html) ou les JSON
             if ext in [".html", ".htm"] and not filename.startswith("item_"):
                 continue
 
-            if ext in [".json", ".html", ".htm"]:
-                parts = zip_path.split("/")
-                rel_path = "/".join(parts[1:]) if len(parts) > 1 else zip_path
+            if "/." in zip_path or zip_path.endswith("/"):
+                continue
 
+            parts = zip_path.split("/")
+            rel_path = "/".join(parts[1:]) if len(parts) > 1 else zip_path
+
+            if ext in [".json", ".md", ".html", ".htm", ".csv", ".txt"]:
                 try:
                     with z.open(zip_path) as f:
                         content = f.read().decode("utf-8", errors="ignore")
@@ -188,7 +205,7 @@ def load_products_from_repo():
                                     "band",
                                     "author",
                                     "groupe",
-                                    "by",
+                                    "byartist",
                                     "brand",
                                 ],
                             )
@@ -240,11 +257,78 @@ def load_products_from_repo():
     return products
 
 
+def clean_dead_links(valid_products):
+    if not Path(POSTS_DIR).exists():
+        return
+
+    print("2. Nettoyage des liens morts dans les anciens articles...")
+    valid_urls = {p["url"] for p in valid_products if p.get("url")}
+    fallback_store_url = f"https://{REPO_OWNER.lower()}.github.io/{REPO_NAME}/"
+
+    for post_file in Path(POSTS_DIR).glob("*.md"):
+        content = post_file.read_text(encoding="utf-8")
+
+        def link_replacer(match):
+            text = match.group(1)
+            url = match.group(2)
+
+            if (
+                REPO_NAME in url
+                and url not in valid_urls
+                and url != fallback_store_url
+            ):
+                print(f"   [Lien mort corrigé dans {post_file.name}] : {url}")
+                return (
+                    f"[{text} (Épuisé - Voir le catalogue)]({fallback_store_url})"
+                )
+            return match.group(0)
+
+        new_content = re.sub(
+            r"\[([^\]]+)\]\((https?://[^\)]+)\)", link_replacer, content
+        )
+
+        if new_content != content:
+            post_file.write_text(new_content, encoding="utf-8")
+
+
+def load_history():
+    if Path(HISTORY_FILE).exists():
+        try:
+            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                return set(json.load(f))
+        except Exception:
+            return set()
+    return set()
+
+
+def save_history(history):
+    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(list(history), f, ensure_ascii=False, indent=2)
+
 
 def generate_article_with_ai(artist, products):
-    print(f"Génération de l'article pour {artist} via OpenRouter...")
+    url = "https://openrouter.ai/api/v1/chat/completions"
+    api_key = os.environ.get("OPENROUTER_API_KEY")
 
-    # Liste de modèles gratuits testés successivement
+    if not api_key:
+        print("Clé OPENROUTER_API_KEY manquante dans les secrets.")
+        return f"Découvrez notre sélection de vinyles et CD d'occasion pour **{artist}**."
+
+    prompt = f"""Tu es un disquaire passionné d'occasion et rédacteur web SEO.
+Rédige un article de blog au format Markdown sur l'artiste ou groupe : {artist}.
+
+Voici une sélection de ses supports physiques d'occasion actuellement disponibles dans le bac :
+{json.dumps(products[:10], ensure_ascii=False, indent=2)}
+
+Consignes de rédaction :
+1. Titre principal (H1) accrocheur orienté collection, seconde main et plaisir de l'écoute physique (vinyles, CD, cassettes).
+2. Introduction valorisant l'univers musical de {artist} et l'intérêt d'acquérir ses oeuvres d'époque en support physique d'occasion.
+3. Pour chaque référence listée : une section H2 avec analyse de l'album/objet, l'atout du format et un bouton d'action Markdown direct vers sa fiche produit : [Découvrir cet exemplaire d'occasion](URL_PRODUIT).
+4. Conseils pour entretenir et préserver ses disques d'occasion de cet artiste.
+5. Vocabulaire précis du secteur (pressage d'époque, master, pochette, vinyle, cassette, état).
+6. Ne remets pas de balises de code autour du texte Markdown généré.
+"""
+
     candidate_models = [
         "meta-llama/llama-3.1-8b-instruct:free",
         "qwen/qwen-2.5-72b-instruct:free",
@@ -253,48 +337,43 @@ def generate_article_with_ai(artist, products):
         "openrouter/free",
     ]
 
-    prompt = f"""Rédige un article de blog attrayant en français sur l'artiste ou groupe musical '{artist}'.
-Voici les fiches produits disponibles dans le catalogue d'occasion :
-{json.dumps(products[:10], ensure_ascii=False, indent=2)}
-
-L'article doit présenter l'artiste, sa discographie marquante, et mettre en valeur la sélection de vinyles/CDs ci-dessus.
-Formate le tout en Markdown direct, sans inclure de bloc de code autour."""
-
     headers = {
-        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
         "Content-Type": "application/json",
-        "HTTP-Referer": "https://github.com",
-        "X-Title": "Jekyll Auto Blog",
+        "Authorization": f"Bearer {api_key}",
+        "HTTP-Referer": f"https://github.com/{REPO_OWNER}/{REPO_NAME}",
+        "X-Title": "Music Record Blog Generator",
     }
 
     for model_name in candidate_models:
         print(f"   -> Essai avec le modèle : {model_name}...")
-        req_data = {
+        payload = json.dumps({
+            "messages": [
+                {
+                    "role": "system",
+                    "content": "Tu es un spécialiste de la musique d'occasion et de la rédaction SEO.",
+                },
+                {"role": "user", "content": prompt},
+            ],
             "model": model_name,
-            "messages": [{"role": "user", "content": prompt}],
-        }
+            "temperature": 0.7,
+        }).encode("utf-8")
+
+        req = urllib.request.Request(url, data=payload, headers=headers, method="POST")
 
         try:
-            req = urllib.request.Request(
-                "https://openrouter.ai/api/v1/chat/completions",
-                data=json.dumps(req_data).encode("utf-8"),
-                headers=headers,
-                method="POST",
-            )
-            with urllib.request.urlopen(req, timeout=60) as res:
-                response_data = json.loads(res.read().decode("utf-8"))
-                content = response_data["choices"][0]["message"]["content"].strip()
+            with urllib.request.urlopen(req, timeout=60) as response:
+                res = json.loads(response.read().decode("utf-8"))
+                content = res["choices"][0]["message"]["content"].strip()
 
-                # Ignorer si le modèle renvoie un filtre de sécurité ou une réponse vide
                 if "User Safety" in content or len(content) < 50:
-                    print(f"   ⚠️ Le modèle {model_name} a renvoyé un message de sécurité, test du suivant...")
+                    print(f"   ⚠️ Le modèle {model_name} a renvoyé un message de sécurité ou texte trop court.")
                     continue
 
                 print(f"   ✅ Succès avec le modèle : {model_name} !")
                 return content
 
         except Exception as e:
-            print(f"   ❌ Échec avec {model_name} ({e}), essai du suivant...")
+            print(f"   ❌ Échec avec {model_name} ({e})")
             continue
 
     return f"Découvrez notre sélection de vinyles et CD d'occasion pour **{artist}**."
@@ -311,9 +390,8 @@ def main():
 
     grouped = {}
     for p in products:
-        artist = p.get("artist", "")
-        if artist:
-            grouped.setdefault(artist, []).append(p)
+        art = p["artist"]
+        grouped.setdefault(art, []).append(p)
 
     target_artist = None
     target_products = []
