@@ -314,19 +314,42 @@ def generate_article_with_ai(artist, products):
         print("Clé OPENROUTER_API_KEY manquante dans les secrets.")
         return f"Découvrez notre sélection de vinyles et CD d'occasion pour **{artist}**."
 
-    prompt = f"""Tu es un disquaire passionné d'occasion et rédacteur web SEO.
+    # Formatage propre des données pour l'IA
+    products_formatted = [
+        {
+            "titre": p.get("title"),
+            "format": p.get("format"),
+            "prix": p.get("price"),
+            "url": p.get("url"),
+            "description_fournie": p.get("description", "")
+        }
+        for p in products[:10]
+    ]
+
+    prompt = f"""Tu es un disquaire professionnel expert et rédacteur SEO factuel.
 Rédige un article de blog au format Markdown sur l'artiste ou groupe : {artist}.
 
-Voici une sélection de ses supports physiques d'occasion actuellement disponibles dans le bac :
-{json.dumps(products[:10], ensure_ascii=False, indent=2)}
+Voici la liste EXACTE des produits physiques disponibles en stock (utilise STRICTEMENT ces données) :
+{json.dumps(products_formatted, ensure_ascii=False, indent=2)}
 
-Consignes de rédaction :
-1. Titre principal (H1) accrocheur orienté collection, seconde main et plaisir de l'écoute physique (vinyles, CD, cassettes).
-2. Introduction valorisant l'univers musical de {artist} et l'intérêt d'acquérir ses oeuvres d'époque en support physique d'occasion.
-3. Pour chaque référence listée : une section H2 avec analyse de l'album/objet, l'atout du format et un bouton d'action Markdown direct vers sa fiche produit : [Découvrir cet exemplaire d'occasion](URL_PRODUIT).
-4. Conseils pour entretenir et préserver ses disques d'occasion de cet artiste.
-5. Vocabulaire précis du secteur (pressage d'époque, master, pochette, vinyle, cassette, état).
-6. Ne remets pas de balises de code autour du texte Markdown généré.
+--- CONSIGNES STRICTES DE RÉDACTION ET FIABILITÉ (ZERO HALLUCINATION) ---
+1. **FIDÉLITÉ AUX DONNÉES PRODUIT** :
+   - Tu dois créer une section H2 pour chaque produit listé dans la sélection JSON ci-dessus.
+   - Tu dois OBLIGATOIREMENT insérer l'URL exacte présente dans le champ "url" du produit pour créer le bouton d'action Markdown : `[Découvrir cet exemplaire d'occasion](INSERER_ICI_L_URL_EXACTE_DU_JSON)`.
+   - Ne modifie JAMAIS l'URL fournie et n'invente aucun lien fictif.
+
+2. **RIGUEUR FACTUELLE ET HISTORIQUE (INTERDICTION D'INVENTER)** :
+   - Tu ne dois mentionner que des informations musicales et historiques 100% incontestables sur {artist} (genre musical principal, notoriété générale, pertinence du format vinyle/CD/cassette).
+   - N'INVENTE AUCUNE anecdote personnelle, date précise de studio, numéro de matrice/pressage, tracklist détaillée ou nom de producteur à moins d'en être 100% certain. Si une information n'est pas certaine, reste généraliste et axé sur le plaisir d'écoute et l'objet physique.
+
+3. **STRUCTURE DU CONTENU** :
+   - Titre principal H1 : Accrocheur, orienté collection, seconde main et plaisir de l'écoute physique.
+   - Introduction : Présentation factuelle de l'univers de {artist} et de l'intérêt d'acquérir ses oeuvres d'époque.
+   - Sections H2 (une par produit) : Présentation de l'album/support, intérêt du format, et le bouton Markdown intégrant l'URL exacte du produit.
+   - Section conseils : Recommandations pratiques et universelles pour nettoyer, préserver et stocker les disques et pochettes d'occasion.
+
+4. **FORMATAGE** :
+   - Ne rajoute PAS de balises de code autour du texte Markdown généré (ne mets pas de ```markdown au début ou à la fin).
 """
 
     candidate_models = [
@@ -340,7 +363,7 @@ Consignes de rédaction :
     headers = {
         "Content-Type": "application/json",
         "Authorization": f"Bearer {api_key}",
-        "HTTP-Referer": f"https://github.com/{REPO_OWNER}/{REPO_NAME}",
+        "HTTP-Referer": f"[https://github.com/](https://github.com/){REPO_OWNER}/{REPO_NAME}",
         "X-Title": "Music Record Blog Generator",
     }
 
@@ -350,12 +373,12 @@ Consignes de rédaction :
             "messages": [
                 {
                     "role": "system",
-                    "content": "Tu es un spécialiste de la musique d'occasion et de la rédaction SEO.",
+                    "content": "Tu es un rédacteur et disquaire professionnel. Tu ne rédiges que des faits vérifiés et incontestables, sans jamais inventer d'anecdotes ou de détails fictifs.",
                 },
                 {"role": "user", "content": prompt},
             ],
             "model": model_name,
-            "temperature": 0.7,
+            "temperature": 0.2,  # Température très basse = réponse stricte, factuelle et sans invention
         }).encode("utf-8")
 
         req = urllib.request.Request(url, data=payload, headers=headers, method="POST")
