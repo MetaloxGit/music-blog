@@ -199,11 +199,11 @@ def load_products_from_repo():
             )
 
             for item in items:
-               = get_field(
+               artist = get_field(
                   item,
                   [
-                      "",
-                      "e",
+                      "artist",
+                      "artiste",
                       "band",
                       "author",
                       "groupe",
