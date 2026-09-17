@@ -251,8 +251,13 @@ Voici les fiches produits disponibles dans le catalogue d'occasion :
 L'article doit présenter l'artiste, sa discographie marquante, et mettre en valeur la sélection de vinyles/CDs ci-dessus.
 Formate le tout en Markdown direct, sans inclure de bloc de code autour."""
 
+    # Liste de modèles texte gratuits avec fallback automatique
     req_data = {
-        "model": "openrouter/free",
+        "models": [
+            "google/gemma-2-9b-it:free",
+            "meta-llama/llama-3.3-70b-instruct:free",
+            "mistralai/mistral-7b-instruct:free",
+        ],
         "messages": [{"role": "user", "content": prompt}],
     }
 
