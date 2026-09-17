@@ -308,7 +308,7 @@ def save_history(history):
 
 
 
-def generate_article_with_ai(, products):
+def generate_article_with_ai(artist, products):
     url = "https://openrouter.ai/api/v1/chat/completions"
     api_key = os.environ.get("OPENROUTER_API_KEY")
 
