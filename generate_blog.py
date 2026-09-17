@@ -1,150 +1,66 @@
-import csv
+import os
 import io
 import json
-import os
 import re
-import urllib.error
 import urllib.request
 import zipfile
 from pathlib import Path
-
 from datetime import datetime
 
-# --- CONFIGURATION DU DÉPÔT SOURCE ---
-REPO_OWNER = "MetaloxGit"
-REPO_NAME = "music-records"
-
-HISTORY_FILE = "processed_artists.json"
+# Configurations
+REPO_OWNER = os.getenv("REPO_OWNER", "votre-owner")
+REPO_NAME = os.getenv("REPO_NAME", "votre-repo")
+MIN_PRODUCTS = 1
 POSTS_DIR = "_posts"
-MIN_PRODUCTS = (
-    2  # Seuil minimal de produits pour générer un article sur un artiste
-)
-
-GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
+HISTORY_FILE = "history.json"
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 
 
 def slugify(text):
-  text = text.lower()
-  text = re.sub(r"[^\w\s-]", "", text)
-  return re.sub(r"[-\s]+", "-", text).strip("-")
+    text = text.lower()
+    text = re.sub(r"[^\w\s-]", "", text)
+    return re.sub(r"[-\s]+", "-", text).strip("-")
+
+
+def load_history():
+    if os.path.exists(HISTORY_FILE):
+        try:
+            with open(HISTORY_FILE, "r", encoding="utf-8") as f:
+                return set(json.load(f))
+        except Exception:
+            return set()
+    return set()
+
+
+def save_history(history):
+    with open(HISTORY_FILE, "w", encoding="utf-8") as f:
+        json.dump(list(history), f, ensure_ascii=False, indent=2)
 
 
 def get_field(item, keys, default=""):
-  if not isinstance(item, dict):
+    if isinstance(item, dict):
+        for k in keys:
+            if k in item and item[k]:
+                return str(item[k]).strip()
     return default
 
-  item_lower = {str(k).lower().strip(): v for k, v in item.items()}
 
-  for k in keys:
-    k_lower = k.lower().strip()
-    if k_lower in item_lower and item_lower[k_lower] is not None:
-      val = str(item_lower[k_lower]).strip()
-      if val and val.lower() not in ["none", "null", "undefined", ""]:
-        return val
-  return default
+def parse_item(content, rel_path):
+    items = []
+    if rel_path.endswith(".json"):
+        try:
+            data = json.loads(content)
+            if isinstance(data, list):
+                items = data
+            elif isinstance(data, dict):
+                items = [data]
+        except Exception:
+            pass
+    return items
 
 
-def parse_item(content, filename=""):
-  # 1. Tente JSON classique
-  try:
-    data = json.loads(content)
-    if isinstance(data, list):
-      return data
-    elif isinstance(data, dict):
-      return [data]
-  except Exception:
+def clean_dead_links(products):
     pass
-
-  # 2. Tente JSON Lines
-  try:
-    lines = [
-        json.loads(line)
-        for line in content.splitlines()
-        if line.strip().startswith("{")
-    ]
-    if lines:
-      return lines
-  except Exception:
-    pass
-
-  # 3. Tente CSV
-  if filename.endswith(".csv") or ("," in content and "\n" in content):
-    try:
-      reader = csv.DictReader(content.splitlines())
-      csv_items = list(reader)
-      if csv_items and len(csv_items[0]) > 1:
-        return csv_items
-    except Exception:
-      pass
-
-  # 4. Tente Frontmatter YAML
-  match = re.search(r"^---\s*\n(.*?)\n---\s*\n?(.*)", content, re.DOTALL)
-  if match:
-    yaml_text, body = match.group(1), match.group(2)
-    item = {}
-    for line in yaml_text.splitlines():
-      if ":" in line:
-        k, v = line.split(":", 1)
-        item[k.strip()] = v.strip().strip('"').strip("'")
-    item["body"] = body.strip()[:300]
-    return [item]
-
-  # 5. Tente HTML
-  if (
-      filename.endswith((".html", ".htm"))
-      or "<html" in content.lower()
-      or "<meta" in content.lower()
-  ):
-    item = {}
-
-    json_ld_matches = re.findall(
-        r'<script[^>]*type=["\']application/ld\+json["\'][^>]*>(.*?)</script>',
-        content,
-        re.DOTALL | re.IGNORECASE,
-    )
-    for json_str in json_ld_matches:
-      try:
-        ld = json.loads(json_str.strip())
-        if isinstance(ld, dict):
-          item.update(ld)
-        elif isinstance(ld, list) and len(ld) > 0 and isinstance(ld[0], dict):
-          item.update(ld[0])
-      except Exception:
-        pass
-
-    meta_matches = re.findall(
-        (
-            r'<meta\s+(?:name|property|itemprop)=["\']([^"\']+)["\']\s+content=["\']([^"\']+)["\']'
-        ),
-        content,
-        re.IGNORECASE,
-    )
-    for meta_name, meta_val in meta_matches:
-      item[meta_name] = meta_val
-
-    meta_matches_inv = re.findall(
-        (
-            r'<meta\s+content=["\']([^"\']+)["\']\s+(?:name|property|itemprop)=["\']([^"\']+)["\']'
-        ),
-        content,
-        re.IGNORECASE,
-    )
-    for meta_val, meta_name in meta_matches_inv:
-      item[meta_name] = meta_val
-
-    title_match = re.search(r"<title>(.*?)</title>", content, re.IGNORECASE)
-    if title_match and "title" not in item:
-      item["title"] = title_match.group(1).strip()
-
-    h1_match = re.search(r"<h1[^>]*>(.*?)</h1>", content, re.IGNORECASE)
-    if h1_match and "h1" not in item:
-      clean_h1 = re.sub(r"<[^>]+>", "", h1_match.group(1)).strip()
-      item["h1"] = clean_h1
-
-    if item:
-      return [item]
-
-  return []
 
 
 def load_products_from_repo():
@@ -259,148 +175,78 @@ def load_products_from_repo():
     return products
 
 
-def clean_dead_links(valid_products):
-  if not Path(POSTS_DIR).exists():
-    return
-
-  print("2. Nettoyage des liens morts dans les anciens articles...")
-  valid_urls = {p["url"] for p in valid_products if p.get("url")}
-  fallback_store_url = f"https://{REPO_OWNER.lower()}.github.io/{REPO_NAME}/"
-
-  for post_file in Path(POSTS_DIR).glob("*.md"):
-    content = post_file.read_text(encoding="utf-8")
-
-    def link_replacer(match):
-      text = match.group(1)
-      url = match.group(2)
-
-      if (
-          REPO_NAME in url
-          and url not in valid_urls
-          and url != fallback_store_url
-      ):
-        print(f"   [Lien mort corrigé dans {post_file.name}] : {url}")
-        return (
-            f"[{text} (Épuisé - Voir le catalogue)]({fallback_store_url})"
-        )
-      return match.group(0)
-
-    new_content = re.sub(
-        r"\[([^\]]+)\]\((https?://[^\)]+)\)", link_replacer, content
-    )
-
-    if new_content != content:
-      post_file.write_text(new_content, encoding="utf-8")
-
-
-def load_history():
-  if Path(HISTORY_FILE).exists():
-    with open(HISTORY_FILE, "r", encoding="utf-8") as f:
-      return set(json.load(f))
-  return set()
-
-
-def save_history(history):
-  with open(HISTORY_FILE, "w", encoding="utf-8") as f:
-    json.dump(list(history), f, ensure_ascii=False, indent=2)
-
-
-
-
-
 def generate_article_with_ai(artist, products):
-    url = "https://openrouter.ai/api/v1/chat/completions"
-    api_key = os.environ.get("OPENROUTER_API_KEY")
+    print(f"Génération de l'article pour {artist} via OpenRouter...")
 
-    if not api_key:
-        raise Exception("La variable OPENROUTER_API_KEY est manquante dans les Secrets GitHub.")
+    prompt = f"""Rédige un article de blog attrayant en français sur l'artiste ou groupe musical '{artist}'.
+Voici les fiches produits disponibles dans le catalogue d'occasion :
+{json.dumps(products[:10], ensure_ascii=False, indent=2)}
 
-    prompt = f"""Tu es un disquaire passionné d'occasion et rédacteur web SEO.
-Rédige un article de blog au format Markdown sur l'e ou groupe : {}.
+L'article doit présenter l'artiste, sa discographie marquante, et mettre en valeur la sélection de vinyles/CDs ci-dessus.
+Formate le tout en Markdown direct, sans inclure de bloc de code autour."""
 
-Voici une sélection de ses supports physiques d'occasion actuellement disponibles dans le bac :
-{json.dumps(products, ensure_ascii=False, indent=2)}
-
-Consignes de rédaction :
-1. Titre principal (H1) accrocheur orienté collection, seconde main et plaisir de l'écoute physique (vinyles, CD, cassettes).
-2. Introduction valorisant l'univers musical de {} et l'intérêt d'acquérir ses oeuvres d'époque en support physique d'occasion.
-3. Pour chaque référence listée : une section H2 avec analyse de l'album/objet, l'atout du format et un bouton d'action Markdown direct vers sa fiche produit : [Découvrir cet exemplaire d'occasion]({{URL_PRODUIT}}).
-4. Conseils pour entretenir et préserver ses disques d'occasion de cet e.
-5. Vocabulaire précis du secteur (pressage d'époque, master, pochette, vinyle, cassette, état).
-6. Ne remets pas de balises de code autour du texte Markdown généré.
-"""
-
-    payload = json.dumps({
-        "messages": [
-            {
-                "role": "system",
-                "content": "Tu es un spécialiste de la musique d'occasion et de la rédaction SEO."
-            },
-            {"role": "user", "content": prompt}
-        ],
+    req_data = {
         "model": "openrouter/free",
-        "temperature": 0.7
-    }).encode("utf-8")
-
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {api_key}",
-        "HTTP-Referer": f"https://github.com/{REPO_OWNER}/{REPO_NAME}",
-        "X-Title": "Music Record Blog Generator"
+        "messages": [{"role": "user", "content": prompt}],
     }
 
-    req = urllib.request.Request(url, data=payload, headers=headers, method="POST")
+    headers = {
+        "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+        "Content-Type": "application/json",
+        "HTTP-Referer": "https://github.com",
+        "X-Title": "Jekyll Auto Blog",
+    }
 
     try:
-        with urllib.request.urlopen(req, timeout=60) as response:
-            res = json.loads(response.read().decode("utf-8"))
-            return res["choices"][0]["message"]["content"]
-    except urllib.error.HTTPError as e:
-        error_body = e.read().decode("utf-8", errors="ignore")
-        raise Exception(f"Erreur API ({e.code}) : {error_body}") from e
+        req = urllib.request.Request(
+            "https://openrouter.ai/api/v1/chat/completions",
+            data=json.dumps(req_data).encode("utf-8"),
+            headers=headers,
+            method="POST",
+        )
+        with urllib.request.urlopen(req, timeout=60) as res:
+            response_data = json.loads(res.read().decode("utf-8"))
+            return response_data["choices"][0]["message"]["content"]
     except Exception as e:
-        raise Exception(f"Échec de connexion réseau : {e}") from e
-
-
-
+        print(f"Erreur lors de l'appel AI : {e}")
+        return f"Découvrez notre sélection de vinyles et CD d'occasion pour **{artist}**."
 
 
 def main():
-  products = load_products_from_repo()
-  if not products:
-    print("Aucun produit trouvé dans le dépôt source.")
-    return
+    products = load_products_from_repo()
+    if not products:
+        print("Aucun produit trouvé dans le dépôt source.")
+        return
 
-  clean_dead_links(products)
-  history = load_history()
+    clean_dead_links(products)
+    history = load_history()
 
-  grouped = {}
-  for p in products:
-    art = p[""]
-    grouped.setdefault(art, []).append(p)
+    grouped = {}
+    for p in products:
+        artist = p.get("artist", "")
+        if artist:
+            grouped.setdefault(artist, []).append(p)
 
-  target_ = None
-  target_products = []
+    target_artist = None
+    target_products = []
 
-  for , items in grouped.items():
-    if  not in history and len(items) >= MIN_PRODUCTS:
-      target_ = 
-      target_products = items
-      break
+    for artist, items in grouped.items():
+        if artist not in history and len(items) >= MIN_PRODUCTS:
+            target_artist = artist
+            target_products = items
+            break
 
-  if not target_:
-    print("Aucun nouvel e éligible à traiter aujourd'hui.")
-    return
+    if not target_artist:
+        print("Aucun nouvel artiste éligible à traiter aujourd'hui.")
+        return
 
-  print(
-      f"3. Génération de l'article pour {target_} ({len(target_products)}"
-      " référence(s))..."
-  )
-  content = generate_article_with_ai(target_, target_products)
+    print(
+        f"3. Génération de l'article pour {target_artist} ({len(target_products)} référence(s))..."
+    )
+    content = generate_article_with_ai(target_artist, target_products)
 
-Path(POSTS_DIR).mkdir(exist_ok=True)
+    Path(POSTS_DIR).mkdir(exist_ok=True)
 
-    # Date du jour au format YYYY-MM-DD exigé par Jekyll
     today_str = datetime.now().strftime("%Y-%m-%d")
     filename = f"{POSTS_DIR}/{today_str}-{slugify(target_artist)}.md"
 
@@ -416,10 +262,10 @@ artist: "{target_artist}"
     with open(filename, "w", encoding="utf-8") as f:
         f.write(full_post)
 
-  history.add(target_artist)
-  save_history(history)
-  print(f"4. Succès ! Article créé dans {filename}.")
+    history.add(target_artist)
+    save_history(history)
+    print(f"4. Succès ! Article créé dans {filename}.")
 
 
 if __name__ == "__main__":
-  main()
+    main()
