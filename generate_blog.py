@@ -244,22 +244,21 @@ def load_products_from_repo():
 def generate_article_with_ai(artist, products):
     print(f"Génération de l'article pour {artist} via OpenRouter...")
 
+    # Liste de modèles gratuits testés successivement
+    candidate_models = [
+        "meta-llama/llama-3.1-8b-instruct:free",
+        "qwen/qwen-2.5-72b-instruct:free",
+        "google/gemma-2-9b-it:free",
+        "mistralai/mistral-7b-instruct:free",
+        "openrouter/free",
+    ]
+
     prompt = f"""Rédige un article de blog attrayant en français sur l'artiste ou groupe musical '{artist}'.
 Voici les fiches produits disponibles dans le catalogue d'occasion :
 {json.dumps(products[:10], ensure_ascii=False, indent=2)}
 
 L'article doit présenter l'artiste, sa discographie marquante, et mettre en valeur la sélection de vinyles/CDs ci-dessus.
 Formate le tout en Markdown direct, sans inclure de bloc de code autour."""
-
-    # Liste de modèles texte gratuits avec fallback automatique
-    req_data = {
-        "models": [
-            "google/gemma-2-9b-it:free",
-            "meta-llama/llama-3.3-70b-instruct:free",
-            "mistralai/mistral-7b-instruct:free",
-        ],
-        "messages": [{"role": "user", "content": prompt}],
-    }
 
     headers = {
         "Authorization": f"Bearer {OPENROUTER_API_KEY}",
@@ -268,19 +267,37 @@ Formate le tout en Markdown direct, sans inclure de bloc de code autour."""
         "X-Title": "Jekyll Auto Blog",
     }
 
-    try:
-        req = urllib.request.Request(
-            "https://openrouter.ai/api/v1/chat/completions",
-            data=json.dumps(req_data).encode("utf-8"),
-            headers=headers,
-            method="POST",
-        )
-        with urllib.request.urlopen(req, timeout=60) as res:
-            response_data = json.loads(res.read().decode("utf-8"))
-            return response_data["choices"][0]["message"]["content"]
-    except Exception as e:
-        print(f"Erreur lors de l'appel AI : {e}")
-        return f"Découvrez notre sélection de vinyles et CD d'occasion pour **{artist}**."
+    for model_name in candidate_models:
+        print(f"   -> Essai avec le modèle : {model_name}...")
+        req_data = {
+            "model": model_name,
+            "messages": [{"role": "user", "content": prompt}],
+        }
+
+        try:
+            req = urllib.request.Request(
+                "https://openrouter.ai/api/v1/chat/completions",
+                data=json.dumps(req_data).encode("utf-8"),
+                headers=headers,
+                method="POST",
+            )
+            with urllib.request.urlopen(req, timeout=60) as res:
+                response_data = json.loads(res.read().decode("utf-8"))
+                content = response_data["choices"][0]["message"]["content"].strip()
+
+                # Ignorer si le modèle renvoie un filtre de sécurité ou une réponse vide
+                if "User Safety" in content or len(content) < 50:
+                    print(f"   ⚠️ Le modèle {model_name} a renvoyé un message de sécurité, test du suivant...")
+                    continue
+
+                print(f"   ✅ Succès avec le modèle : {model_name} !")
+                return content
+
+        except Exception as e:
+            print(f"   ❌ Échec avec {model_name} ({e}), essai du suivant...")
+            continue
+
+    return f"Découvrez notre sélection de vinyles et CD d'occasion pour **{artist}**."
 
 
 def main():
