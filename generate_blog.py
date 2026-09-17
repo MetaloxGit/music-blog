@@ -354,13 +354,15 @@ Voici la liste EXACTE des produits physiques disponibles en stock (utilise STRIC
 """
 
     candidate_models = [
-        "google/gemini-2.0-flash-lite-001:free",
-        "meta-llama/llama-3.3-70b-instruct:free",
-        "qwen/qwen-2.5-72b-instruct:free",
-        "google/gemma-2-9b-it:free",
-        "meta-llama/llama-3.1-8b-instruct:free",
-        "mistralai/mistral-7b-instruct:free",
-        "openrouter/free",  # Filet de sécurité en dernier recours
+        "inclusionai/ling-3.0-flash-vl:free",       # 1. Ultra rapide (~140 tok/s)
+        "dots-studio/dots-3-note-preview:free",      # 2. Très rapide (~91 tok/s)
+        "google/gemini-2.0-flash-lite-001:free",     # 3. Très stable & réactif
+        "nvidia/nemotron-3-ultra:free",              # 4. 100% de succès sur tes logs
+        "meta-llama/llama-3.3-70b-instruct:free",   # 5. Modèle puissant (70B)
+        "qwen/qwen-2.5-72b-instruct:free",           # 6. Très bon en français
+        "meta-llama/llama-3.1-8b-instruct:free",     # 7. Secours rapide (8B)
+        "google/gemma-2-9b-it:free",                 # 8. Secours (9B)
+        "openrouter/free",                           # 9. Filet de sécurité final
     ]
 
     headers = {
