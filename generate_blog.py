@@ -8,8 +8,13 @@ from pathlib import Path
 from datetime import datetime
 
 # Configurations
-REPO_OWNER = os.getenv("REPO_OWNER", "votre-owner")
-REPO_NAME = os.getenv("REPO_NAME", "votre-repo")
+# Détection automatique du dépôt sur GitHub Actions
+github_repo = os.getenv("GITHUB_REPOSITORY", "metaloxgit/music-blog")
+if "/" in github_repo:
+    REPO_OWNER, REPO_NAME = github_repo.split("/", 1)
+else:
+    REPO_OWNER = "metaloxgit"
+    REPO_NAME = "music-blog"
 MIN_PRODUCTS = 1
 POSTS_DIR = "_posts"
 HISTORY_FILE = "history.json"
