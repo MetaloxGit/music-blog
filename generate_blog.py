@@ -199,30 +199,30 @@ def load_products_from_repo():
             )
 
             for item in items:
-               artist = get_field(
-                  item,
-                  [
-                      "artist",
-                      "artiste",
-                      "band",
-                      "author",
-                      "groupe",
-                      "by",
-                      "brand",
-                  ],
-              )
-              title = get_field(
-                  item,
-                  [
-                      "title",
-                      "titre",
-                      "album",
-                      "name",
-                      "product_name",
-                      "h1",
-                      "og:title",
-                  ],
-              )
+                artist = get_field(
+                    item,
+                    [
+                        "artist",
+                        "artiste",
+                        "band",
+                        "author",
+                        "groupe",
+                        "by",
+                        "brand",
+                    ],
+                )
+                title = get_field(
+                    item,
+                    [
+                        "title",
+                        "titre",
+                        "album",
+                        "name",
+                        "product_name",
+                        "h1",
+                        "og:title",
+                    ],
+                )
 
               if not  and title and " - " in title:
                 t_parts = title.split(" - ", 1)
