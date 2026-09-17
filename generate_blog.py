@@ -351,6 +351,11 @@ Voici la liste EXACTE des produits physiques disponibles en stock (utilise STRIC
 
 4. **FORMATAGE** :
    - Ne rajoute PAS de balises de code autour du texte Markdown généré (ne mets pas de ```markdown au début ou à la fin).
+
+5. **STRUCTURE ET SEO DES TITRES** :
+   - Ne génère STRICTEMENT AUCUN titre `#` (H1) dans le texte.
+   - Utilise uniquement des sous-titres de niveau 2 (`##`).
+   - Tous tes sous-titres (`##` ou `###`) doivent être concis et faire MOINS DE 75 CARACTÈRES.
 """
 
     candidate_models = [
