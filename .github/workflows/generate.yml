@@ -2,8 +2,8 @@ name: Automatic Blog Post Generator
 
 on:
   schedule:
-# S'exécute à la minute 15 de toutes les 4 heures (ex: 00:15, 04:15, 08:15...)
-    - cron: '15 */4 * * *'
+# S'exécute à la minute 15 de toutes les 3 heures (ex: 00:15, 04:15, 08:15...)
+    - cron: '15 */3 * * *'
   workflow_dispatch:      # Permet de lancer la génération manuellement quand tu le souhaites
 
 permissions:
