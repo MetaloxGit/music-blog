@@ -12,13 +12,13 @@ Figure incontournable du chaâbi algérien, Abdelkader Chaou a marqué des gén�
 
 Cet exemplaire constitue une pièce de choix pour toute discothèque consacrée à la musique algérienne classique. Il s'agit d'un **pressage original 7 pouces réalisé en Algérie** sur le label **Zed El Youm (référence ZEY - 520)**. La mention "RARE ORIGINAL 7\"" souligne la rareté de ce pressage local face aux rééditions ultérieures ou aux pressages européens. Le titre "Yal Aadra" figure parmi les interprétations majeures du répertoire de Chaou, témoignant de sa virtuosité vocale et de l'accompagnement instrumental typique des orchestres de radio-télévision algérienne de l'époque. L'état de conservation de la pochette et du vinyle (détail visible sur la fiche produit) détermine la valeur patrimoniale de cet objet.
 
-[Découvrir cet exemplaire d'occasion](https://metaloxgit.github.io/music-records/item_3051852164.html)
+[Découvrir cet exemplaire d'occasion](https://metaloxgit.github.io/music-records/item_3051852164.html){:target="_blank" rel="noopener"}
 
 ## Djah Djah Djah Rabi (45T x 1)
 
 Ce second 45 tours propose le titre "Djah Djah Djah Rabi" en **format 7 pouces Mono**. Il s'agit d'un exemplaire **vendu sans pochette (NO COVER)**. La description technique fournie est sans concession sur l'état physique du vinyle : il est qualifié de "very tired" (très fatigué), présentant de nombreuses rayures (scuffs), des bruits de fond (noises) et des impacts sur les tranches (impacts on edges). Le vendeur signale explicitement un risque de saut sur platine sensible ("Can jump on a sensible turntable"). Cet exemplaire s'adresse donc prioritairement à un collectionneur cherchant à compléter une discographie précise (matrice, pressage) ou à un auditeur acceptant les altérations sonores inhérentes à un disque très usagé, témoignant d'une écoute intensive passée.
 
-[Découvrir cet exemplaire d'occasion](https://metaloxgit.github.io/music-records/item_3194265085.html)
+[Découvrir cet exemplaire d'occasion](https://metaloxgit.github.io/music-records/item_3194265085.html){:target="_blank" rel="noopener"}
 
 ## Conseils pour l'entretien et la préservation de vos 45 tours d'occasion
 
