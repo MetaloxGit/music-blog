@@ -14,7 +14,7 @@ Le produit disponible dans notre sélection est un 45 tours (7 pouces) intitulé
 
 Le format 45 tours (7 pouces) est le support emblématique des singles de l'ère vinyle. Il permet de découvrir un titre phare accompagné de sa face B, dans un format compact et facile à stocker. Les éditions avec contenus promotionnels tels que des posters sont particulièrement recherchées par les collectionneurs pour la richesse de leur packaging.
 
-[Découvrir cet exemplaire d'occasion](https://metaloxgit.github.io/music-records/item_3051852173.html)
+[Découvrir cet exemplaire d'occasion](https://metaloxgit.github.io/music-records/item_3051852173.html){:target="_blank" rel="noopener"}
 
 ## Conseils pour préserver vos disques d'occasion
 
