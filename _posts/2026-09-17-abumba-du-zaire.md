@@ -16,7 +16,7 @@ Ce disque 45 tours intitulé *Likambo Na Falanga (Kamatisa) / Mupenzi* est un ex
 
 Le format 45 tours, porteur de singles et de titres marquants, conserve une valeur particulière pour les amateurs de vinyles originaux. Ce type de support permet de restituer la dynamique sonore propre aux enregistrements de cette époque.
 
-[Découvrir cet exemplaire d'occasion](https://metaloxgit.github.io/music-records/item_3051852165.html)
+[Découvrir cet exemplaire d'occasion](https://metaloxgit.github.io/music-records/item_3051852165.html){:target="_blank" rel="noopener"}
 
 ## Conseils de préservation pour vos disques d'occasion
 
