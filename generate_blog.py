@@ -335,7 +335,7 @@ Voici la liste EXACTE des produits physiques disponibles en stock (utilise STRIC
 --- CONSIGNES STRICTES DE RÉDACTION ET FIABILITÉ (ZERO HALLUCINATION) ---
 1. **FIDÉLITÉ AUX DONNÉES PRODUIT** :
    - Tu dois créer une section H2 pour chaque produit listé dans la sélection JSON ci-dessus.
-   - Tu dois OBLIGATOIREMENT insérer l'URL exacte présente dans le champ "url" du produit pour créer le bouton d'action Markdown : `[Découvrir cet exemplaire d'occasion](INSERER_ICI_L_URL_EXACTE_DU_JSON)`.
+   - Tu dois OBLIGATOIREMENT insérer l'URL exacte présente dans le champ "url" du produit pour créer le bouton d'action Markdown : [Découvrir cet exemplaire d'occasion](INSERER_ICI_L_URL_EXACTE_DU_JSON){:target="_blank" rel="noopener"}.
    - Ne modifie JAMAIS l'URL fournie et n'invente aucun lien fictif.
 
 2. **RIGUEUR FACTUELLE ET HISTORIQUE (INTERDICTION D'INVENTER)** :
