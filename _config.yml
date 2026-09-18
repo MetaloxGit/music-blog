@@ -4,3 +4,11 @@ theme: minima
 
 # Configuration des articles
 permalink: /blog/:title/
+
+url: "https://metaloxgit.github.io"
+baseurl: "/music-blog"
+
+# Plugins GitHub Pages
+plugins:
+  - jekyll-sitemap
+  - jekyll-seo-tag
