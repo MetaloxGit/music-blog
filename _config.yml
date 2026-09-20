@@ -12,3 +12,7 @@ baseurl: "/music-blog"
 plugins:
   - jekyll-sitemap
   - jekyll-seo-tag
+
+# Pagination
+paginate: 30
+paginate_path: "/page:num/"
