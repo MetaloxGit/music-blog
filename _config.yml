@@ -8,11 +8,12 @@ permalink: /blog/:title/
 url: "https://metaloxgit.github.io"
 baseurl: "/music-blog"
 
+# Pagination
+paginate: 30
+paginate_path: "/page:num/"
+
 # Plugins GitHub Pages
 plugins:
   - jekyll-sitemap
   - jekyll-seo-tag
-
-# Pagination
-paginate: 30
-paginate_path: "/page:num/"
+  - jekyll-paginate
