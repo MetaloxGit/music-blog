@@ -326,6 +326,14 @@ def generate_article_with_ai(artist, products):
         for p in products[:10]
     ]
 
+    # --- NETTOYAGE DES CARACTÈRES HTML ---
+    artist = html.unescape(artist)
+
+    for p in products_formatted:
+        for key, value in p.items():
+            if isinstance(value, str):
+                p[key] = html.unescape(value)
+
     prompt = f"""Tu es un journaliste musical expert, collectionneur passionné et disquaire spécialisé dans les supports physiques d'occasion (vinyles, CD, cassettes audio).
 Tu rédiges des articles de blog en français, immersifs, très documentés, naturels et optimisés pour le référencement naturel (SEO).
 
