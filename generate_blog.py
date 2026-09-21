@@ -51,7 +51,7 @@ def call_openrouter(prompt):
         }
         try:
             print(f"Tentative de génération avec le modèle : {model}...")
-            response = requests.post("[https://openrouter.ai/api/v1/chat/completions](https://openrouter.ai/api/v1/chat/completions)", headers=headers, json=payload, timeout=60)
+            response = requests.post("https://openrouter.ai/api/v1/chat/completions", headers=headers, json=payload, timeout=60)
             if response.status_code == 200:
                 data = response.json()
                 text = data['choices'][0]['message']['content']
