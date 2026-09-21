@@ -405,10 +405,6 @@ Varie les thèmes d'un article à l'autre (nettoyage, brosse antistatique, range
         "nvidia/nemotron-3-ultra:free",              # 3. 70B - Spécialisé, très structuré
         "google/gemini-2.0-flash-lite-001:free",     # 4. Architecture Gemini 2.0 - Très intelligent et fluide
         "google/gemma-2-9b-it:free",                 # 5. 9B - Dépasse largement la plupart des petits modèles
-        "meta-llama/llama-3.1-8b-instruct:free",     # 6. 8B - Correct mais plus basique
-        "dots-studio/dots-3-note-preview:free",      # 7. Modèle léger / spécialisé
-        "inclusionai/ling-3.0-flash-vl:free",        # 8. Modèle ultra-léger axé vitesse
-        "openrouter/free",                           # 9. Filet de sécurité final (choix auto)
     ]
 
     headers = {
