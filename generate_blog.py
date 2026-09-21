@@ -312,8 +312,8 @@ def generate_article_with_ai(artist, products):
     api_key = os.environ.get("OPENROUTER_API_KEY")
 
     if not api_key:
-        print("Clé OPENROUTER_API_KEY manquante dans les secrets.")
-        return f"Découvrez notre sélection de vinyles et CD d'occasion pour **{artist}**."
+        # Stop immédiat si la clé API est absente
+        raise RuntimeError("❌ Clé OPENROUTER_API_KEY manquante dans les secrets GitHub.")
 
     # Formatage propre des données pour l'IA
     products_formatted = [
@@ -446,8 +446,8 @@ Varie les thèmes d'un article à l'autre (nettoyage, brosse antistatique, range
             print(f"   ❌ Échec avec {model_name} ({e})")
             continue
 
-    return f"Découvrez notre sélection de vinyles et CD d'occasion pour **{artist}**."
-
+    # Si la boucle se termine sans aucun succès, on stoppe le script net
+    raise RuntimeError("❌ Échec global : aucun modèle IA disponible n'a réussi à générer l'article.")
 
 def main():
     products = load_products_from_repo()
