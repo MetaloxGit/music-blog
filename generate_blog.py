@@ -326,304 +326,68 @@ def generate_article_with_ai(artist, products):
         for p in products[:10]
     ]
 
-    prompt = f"""Tu es un rédacteur spécialisé dans les supports musicaux physiques
-d'occasion (vinyles, CD, cassettes audio et autres formats physiques).
-Tu rédiges des articles de blog en français, naturels, informatifs et orientés SEO.
+    prompt = f"""Tu es un journaliste musical expert, collectionneur passionné et disquaire spécialisé dans les supports physiques d'occasion (vinyles, CD, cassettes audio).
+Tu rédiges des articles de blog en français, immersifs, très documentés, naturels et optimisés pour le référencement naturel (SEO).
 
-Ta mission est de rédiger un article consacré à l'artiste ou au groupe :
+Ta mission est de rédiger un article d'expertise consacré à l'artiste ou au groupe :
 {artist}
 
 ==================================================
-DONNÉES SOURCE
+1. DONNÉES SOURCE (FICHE(S) PRODUIT(S))
 ==================================================
 
-Voici la liste EXACTE des produits actuellement disponibles :
+Voici la liste EXACTE du ou des produits actuellement disponibles :
 
 {json.dumps(products_formatted, ensure_ascii=False, indent=2)}
 
 RÈGLE ABSOLUE :
-Les données produit ci-dessus sont ta source principale.
-Ne complète jamais une information absente par une supposition.
-
-Il vaut toujours mieux fournir moins d'informations que d'en inventer.
+Les données JSON ci-dessus sont ta seule source de vérité pour le matériel. Ne complète jamais une donnée absente par une supposition.
 
 ==================================================
-1. FIABILITÉ — ZÉRO HALLUCINATION
+2. FIABILITÉ ET ADAPTATION SELON L'ARTISTE
 ==================================================
 
-N'invente jamais :
-
-- date de sortie ou d'enregistrement ;
-- label ;
-- numéro de catalogue ou de matrice ;
-- pays de pressage ;
-- édition ou pressage ;
-- membres du groupe ;
-- biographie ;
-- discographie ;
-- genre ou sous-genre musical ;
-- influences ;
-- anecdote ;
-- classement ou certification ;
-- ventes ou popularité ;
-- rareté ou valeur financière ;
-- état du produit ;
-- caractéristique technique ;
-- tracklist ;
-- information historique.
-
-Si une information n'est pas présente dans les données et qu'elle
-n'est pas absolument générale et évidente, ne la mentionne pas.
-
-Ne déduis jamais une information à partir du nom de l'artiste,
-du titre de l'album, de la pochette ou du format.
-
-Exemple :
-si un produit indique uniquement "Vinyle", tu peux parler d'un vinyle,
-mais tu ne dois pas inventer son année, son label ou son pressage.
-
-Un artiste très connu doit être traité avec la même prudence
-qu'un artiste totalement inconnu.
+- Artiste très connu : Axe sur sa discographie, la place de l'œuvre dans sa carrière, les anecdotes de studio ou le contexte historique réellement avéré.
+- Artiste obscur ou inconnu : Ne cherche sous aucun prétexte à inventer une biographie, une discographie ou des faits historiques (règle absolue : zéro hallucination). Aborde cet enregistrement sous l'angle du mystère, de la « chîne » (digging), de la scène underground d'époque et des caractéristiques sonores du GENRE MUSICAL. Exploite uniquement les indices visuels et physiques réels (matrices, label, pressage, pochette).
+- N'invente jamais : date de sortie, numéro de matrice, pays de pressage, liste des titres ou composition du groupe si l'information n'est pas dans le JSON.
 
 ==================================================
-2. FIDÉLITÉ AUX PRODUITS
+3. STYLE, TON ET LEXIQUE DISQUAIRE
 ==================================================
 
-Crée UNE section H2 (`##`) pour CHAQUE produit présent dans le JSON.
-
-N'oublie aucun produit.
-N'invente aucun produit supplémentaire.
-
-Pour chaque produit, utilise uniquement les informations réellement
-disponibles.
-
-La longueur de la présentation doit être proportionnelle aux données :
-
-- description riche → présentation plus développée ;
-- description courte → présentation concise ;
-- description vide → présentation courte basée uniquement sur les
-  informations certaines disponibles.
-
-Ne remplis jamais artificiellement une description vide.
+- Ton : Passionné, expert, crédible et immersif.
+- Lexique d'expert : Utilise le vocabulaire technique des collectionneurs quand c'est pertinent (pressage d'époque, masterisation, matrix, gatefold, VG+, mint, dynamique sonore, digger, private press, grille Goldmine).
+- Interdictions : Aucune introduction générique ou bateau d'IA ("Dans cet article", "Dans un monde de plus en plus numérique", "Il est important de noter"). Attaque directement le sujet dès la première ligne.
 
 ==================================================
-3. URL DES PRODUITS
+4. FIDÉLITÉ AUX PRODUITS ET LIENS
 ==================================================
 
-Pour CHAQUE produit, insère obligatoirement son URL exacte
-dans ce bouton :
+- Crée UNE section H2 (`##`) pour CHAQUE produit présent dans le JSON. N'en oublie aucun et n'en invente aucun.
+- Pour CHAQUE produit, insère obligatoirement son URL exacte dans ce bouton strict :
 
 [Découvrir cet exemplaire d'occasion](URL_EXACTE){{:target="_blank" rel="noopener"}}
 
-Utilise exactement l'URL présente dans le champ "url" du JSON.
+Utilise exactement l'URL présente dans le champ "url" du JSON. NE LA MODIFIE PAS.
 
-NE MODIFIE PAS l'URL.
-NE RACCOURCIS PAS l'URL.
-N'INVENTE AUCUNE URL.
-
-Le bouton doit correspondre au produit présenté dans la section.
+- Si la description d'un produit est très courte ou vide :
+  Ne brode pas de faux détails techniques. Oriente la présentation sur la culture du support (le charme du sillon analogique, la nostalgie de la cassette ou de la première édition CD), le plaisir d'explorer des pépites oubliées et l'évaluation de l'état physique selon les critères de collectionneurs (grille Goldmine).
 
 ==================================================
-4. INTRODUCTION
+5. SECTION CONSEILS (CONSERVATION / ENTRETIEN)
 ==================================================
 
-Présente naturellement l'artiste et les supports disponibles.
-
-Tu peux évoquer, lorsque les données le permettent :
-
-- l'artiste ou le groupe ;
-- les œuvres disponibles ;
-- le plaisir de l'écoute physique ;
-- la collection ;
-- la seconde main ;
-- l'intérêt de retrouver une œuvre sur support physique.
-
-Si l'artiste est peu documenté ou si les données sont insuffisantes,
-ne crée PAS de biographie.
-
-Dans ce cas, concentre l'introduction sur les supports disponibles
-et sur l'intérêt général de la collection physique.
-
-Évite les introductions génériques répétitives comme :
-"Depuis toujours, la musique..."
-"Dans un monde de plus en plus numérique..."
-"Les passionnés de musique savent..."
+Ajoute une section H2 (`##`) consacrée à 1 ou 2 conseils pratiques d'expert concernant les supports physiques traités dans l'article.
+Varie les thèmes d'un article à l'autre (nettoyage, brosse antistatique, rangement vertical, sous-pochettes doublées, préservation des boîtiers/livrets).
 
 ==================================================
-5. DESCRIPTION DES PRODUITS
+6. CONTRAINTES DE FORMATAGE MARKDOWN
 ==================================================
 
-Pour chaque produit, présente lorsque l'information est disponible :
-
-- le titre ;
-- le format ;
-- les caractéristiques explicitement fournies ;
-- les éléments de description utiles ;
-- l'intérêt du support physique.
-
-Ne transforme jamais une supposition en fait.
-
-Évite les superlatifs non justifiés tels que :
-
-"culte", "légendaire", "mythique", "incontournable",
-"rarissime", "très recherché", "chef-d'œuvre", "pépite",
-"collector", "trésor".
-
-Utilise-les uniquement si les données fournies permettent réellement
-de les justifier.
-
-==================================================
-6. VARIÉTÉ RÉDACTIONNELLE
-==================================================
-
-Chaque article doit avoir une rédaction naturelle et ne pas ressembler
-à un modèle copié-collé.
-
-Varie lorsque cela est pertinent :
-
-- la longueur des paragraphes ;
-- les transitions ;
-- l'ordre des informations ;
-- la structure des phrases ;
-- le vocabulaire ;
-- l'angle de présentation ;
-- la façon de parler du support physique.
-
-IMPORTANT :
-La variation doit être sémantique et structurelle, pas seulement
-basée sur des synonymes.
-
-Ne répète pas systématiquement les mêmes formulations comme :
-
-"Les amateurs de..."
-"Les collectionneurs apprécieront..."
-"Cette édition constitue..."
-"Ce format permet de..."
-
-==================================================
-7. SECTION CONSEILS — ANTI-RÉPÉTITION
-==================================================
-
-Ajoute une section H2 consacrée à un ou deux conseils pratiques
-concernant les supports physiques présents dans l'article.
-
-Ne reproduis PAS systématiquement le même paragraphe sur :
-
-- le nettoyage ;
-- la brosse antistatique ;
-- le stockage vertical ;
-- les pochettes ;
-- la poussière ;
-- la manipulation par les bords.
-
-Choisis les thèmes les plus pertinents parmi :
-
-- nettoyage et entretien ;
-- stockage et rangement ;
-- humidité, chaleur et environnement ;
-- manipulation des vinyles ;
-- conservation des pochettes et livrets ;
-- entretien des CD ;
-- conservation des cassettes ;
-- transport d'une collection ;
-- organisation et classement ;
-- erreurs fréquentes ;
-- préservation des supports anciens ;
-- protection contre la poussière ;
-- préparation avant une première écoute ;
-- organisation d'une collection de seconde main.
-
-Ne cherche PAS à traiter toutes ces catégories.
-
-Varie également la forme de la section :
-
-- mini-checklist ;
-- 3 conseils pratiques ;
-- méthode en quelques étapes ;
-- erreur fréquente à éviter ;
-- problème et solution ;
-- guide pratique ;
-- "à faire / à éviter" ;
-- conseil spécifique au format.
-
-IMPORTANT :
-Changer uniquement les mots ne constitue PAS une variation suffisante.
-
-Par exemple, remplacer "nettoyer régulièrement ses vinyles"
-par "entretenir régulièrement ses disques" reste le même conseil.
-
-La variation doit porter sur le SUJET ou l'ANGLE, pas uniquement
-sur la formulation.
-
-Les conseils doivent rester simples, prudents et applicables.
-N'invente pas de propriété particulière concernant un support.
-
-==================================================
-8. ANTI-RÉPÉTITION GLOBAL
-==================================================
-
-Évite les paragraphes génériques pouvant être copiés tels quels
-d'un article à l'autre.
-
-Évite également de répéter systématiquement :
-
-- la même introduction ;
-- les mêmes transitions ;
-- le même ordre de présentation ;
-- les mêmes conseils ;
-- les mêmes exemples ;
-- les mêmes conclusions.
-
-Ne cherche cependant pas à varier artificiellement le contenu :
-la pertinence et la fiabilité sont prioritaires sur la variété.
-
-==================================================
-9. STRUCTURE MARKDOWN
-==================================================
-
-Le H1 est généré par le programme appelant.
-
-NE GÉNÈRE DONC AUCUN H1 (`#`).
-
-Utilise uniquement des titres H2 (`##`) pour les sections.
-
-N'utilise aucun H3 (`###`).
-
-Chaque H2 doit être concis et faire MOINS DE 75 CARACTÈRES.
-
-==================================================
-10. FORMAT DE SORTIE
-==================================================
-
-Retourne UNIQUEMENT l'article final en Markdown.
-
-Ne retourne aucune explication, analyse, note ou commentaire
-destiné au programmeur.
-
-Ne place pas le contenu dans un bloc de code Markdown.
-
-Commence directement avec le contenu de l'article.
-
-==================================================
-11. CONTRÔLE FINAL SILENCIEUX
-==================================================
-
-Avant de répondre, vérifie silencieusement :
-
-[ ] Tous les produits du JSON ont une section H2.
-[ ] Aucun produit supplémentaire n'a été inventé.
-[ ] Chaque produit possède son bouton avec son URL exacte.
-[ ] Aucune URL n'a été inventée ou modifiée.
-[ ] Aucun fait biographique non fourni n'a été inventé.
-[ ] Aucun genre musical non confirmé n'a été ajouté.
-[ ] Aucune date, édition, label ou caractéristique non fournie
-    n'a été inventée.
-[ ] Les informations inconnues ont été laissées de côté.
-[ ] La section conseils est pertinente pour les formats présents.
-[ ] La section conseils n'est pas un paragraphe générique recyclé.
-[ ] Aucun H1 ou H3 n'est présent.
-[ ] Tous les H2 font moins de 75 caractères.
-[ ] La réponse contient uniquement du Markdown.
+- AUCUN H1 (`#`) : Le titre principal est géré en amont. Ne génère aucun `#`.
+- AUCUN H3 (`###`) : Utilise uniquement des titres H2 (`##`).
+- Longueur des H2 : Tous les titres H2 doivent faire MOINS DE 75 CARACTÈRES.
+- Format de réponse : Retourne UNIQUEMENT l'article final en Markdown brut, sans bloc de code (pas de ```markdown), sans commentaire ni note introductive.
 """
 
     candidate_models = [
