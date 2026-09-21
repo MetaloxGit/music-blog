@@ -2,34 +2,35 @@ name: Automatic Blog Post Generator
 
 on:
   schedule:
-# S'exécute à la minute 15 de toutes les 3 heures (ex: 00:15, 04:15, 08:15...)
-    - cron: '15 */3 * * *'
-  workflow_dispatch:      # Permet de lancer la génération manuellement quand tu le souhaites
-
-permissions:
-  contents: write
+    - cron: '0 */3 * * *'
+  workflow_dispatch:
 
 jobs:
   generate:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout repository
+      - name: Checkout du dépôt
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Configuration de Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.10'
 
-      - name: Run blog generation script
+      - name: Installer les dépendances
+        run: |
+          python -m pip install --upgrade pip
+          pip install requests
+
+      - name: Générer l'article avec l'IA
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
         run: python generate_blog.py
 
-      - name: Commit and Push changes
+      - name: Commit et Push de l'article
         run: |
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
-          git add -A
-          git diff --quiet && git diff --staged --quiet || (git commit -m "feat: auto-generate blog post for artist" && git push)
+          git add _posts/
+          git commit -m "bot: ajout d'un nouvel article automatique" || exit 0
+          git push
