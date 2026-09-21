@@ -403,11 +403,6 @@ Varie les thèmes d'un article à l'autre (nettoyage, brosse antistatique, range
         "qwen/qwen3.8-27b:free",
         "nex-agi/nex-n2.5-pro:free",
         "thinkingmachines/inkling-small:free",
-        "qwen/qwen-2.5-72b-instruct:free",           # 1. 72B - Le meilleur pour la rédaction en français
-        "meta-llama/llama-3.3-70b-instruct:free",    # 2. 70B - Modèle phare, niveau GPT-4o
-        "nvidia/nemotron-3-ultra:free",              # 3. 70B - Spécialisé, très structuré
-        "google/gemini-2.0-flash-lite-001:free",     # 4. Architecture Gemini 2.0 - Très intelligent et fluide
-        "google/gemma-2-9b-it:free",                 # 5. 9B - Dépasse largement la plupart des petits modèles
     ]
 
     headers = {
