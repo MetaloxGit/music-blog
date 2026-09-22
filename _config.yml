@@ -2,6 +2,10 @@ title: "Blog Musique & Disques d'Occasion"
 description: "Guides collectors, sélections vinyles, CD et cassettes audio d'époque."
 theme: minima
 
+# Pages à afficher dans le menu de navigation supérieur
+header_pages:
+  - index.html
+  
 # Configuration des articles
 permalink: /blog/:title/
 
