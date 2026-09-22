@@ -1,8 +1,41 @@
 ---
-layout: home
+layout: default
 title: "Derniers articles collectors"
 ---
+
 <p>
   <img src="{{ '/assets/images/collection-vinyles.webp' | relative_url }}" alt="Musique d'occasion" style="max-width: 100%; height: auto;">
 </p>
 <p>Bienvenue sur notre blog dédié aux passionnés de supports physiques d'occasion (vinyles, CD, cassettes audio et merchandising vintage).</p>
+
+<h2 style="margin-top: 2rem;">
+  Derniers articles collectors 
+  {% if paginator.page > 1 %}
+    — Page {{ paginator.page }}
+  {% endif %}
+</h2>
+
+<!-- Liste des 30 articles distribués par la pagination -->
+<div class="posts-list">
+  {% for post in paginator.posts %}
+    <article class="post-card" style="margin-bottom: 1.5rem;">
+      <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
+      <p>{{ post.excerpt | strip_html | truncatewords: 30 }}</p>
+    </article>
+  {% endfor %}
+</div>
+
+<!-- Liens de navigation entre les pages -->
+{% if paginator.total_pages > 1 %}
+  <nav class="pagination" style="margin-top: 2rem; display: flex; gap: 1rem; align-items: center;">
+    {% if paginator.previous_page %}
+      <a href="{{ paginator.previous_page_path | relative_url }}" class="btn">« Précédent</a>
+    {% endif %}
+
+    <span>Page {{ paginator.page }} sur {{ paginator.total_pages }}</span>
+
+    {% if paginator.next_page %}
+      <a href="{{ paginator.next_page_path | relative_url }}" class="btn">Suivant »</a>
+    {% endif %}
+  </nav>
+{% endif %}
