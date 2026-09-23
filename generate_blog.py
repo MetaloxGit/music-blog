@@ -402,9 +402,23 @@ Varie les thèmes d'un article à l'autre (nettoyage, brosse antistatique, range
 """
 
     candidate_models = [
-        "qwen/qwen3.8-27b:free",
-        "nex-agi/nex-n2.5-pro:free",
-        "thinkingmachines/inkling-small:free",
+    # 1. Le maître incontesté en open-weights (70B) - Excellent en français et rédaction
+    "meta-llama/llama-3.3-70b-instruct:free",
+    
+    # 2. Mastodonte MoE NVIDIA (550B total) - Très haute capacité de structuration
+    "nvidia/nemotron-3-ultra-550b-a55b:free",
+    
+    # 3. Modèle géant 118B - Très performant sur le suivi d'instructions complexes
+    "poolside/laguna-s-2.1:free",
+    
+    # 4. Modèle NVIDIA 120B MoE - Rédaction longue et haute précision
+    "nvidia/nemotron-3-super-120b-a12b:free",
+    
+    # 5. Modèle Google Gemma 31B - Très fluide pour la génération de contenu
+    "google/gemma-4-31b-it:free",
+    
+    # 6. Modèle GLM haut de gamme - Excellent pour le texte structuré
+    "z-ai/glm-5.2:free"
     ]
 
     headers = {
