@@ -369,19 +369,20 @@ Les données JSON ci-dessus sont ta seule source de vérité pour le matériel. 
 - Interdictions : Aucune introduction générique ou bateau d'IA ("Dans cet article", "Dans un monde de plus en plus numérique", "Il est important de noter"). Attaque directement le sujet dès la première ligne.
 
 ==================================================
-4. FIDÉLITÉ AUX PRODUITS ET LIENS
+4. FIDÉLITÉ AUX PRODUITS, ÉTAT ET LIENS
 ==================================================
 
 - Crée UNE section H2 (`##`) pour CHAQUE produit présent dans le JSON. N'en oublie aucun et n'en invente aucun.
-- Pour CHAQUE produit, insère obligatoirement son URL exacte dans ce bouton strict :
 
-[Découvrir cet exemplaire d'occasion](URL_EXACTE){{:target="_blank" rel="noopener"}}
+- Analyse la description de chaque produit dans le JSON :
+  * Si elle contient des indications d'état (ex. "État pochette", "État disque", ou des grades comme VG++, EX, M-, Mint, Goldmine), tu DOIS rédiger un paragraphe d'expert disquaire analysant la qualité de conservation et d'écoute de cet exemplaire précis.
+  * Si la description est très courte ou sans mention d'état, ne brode pas de faux détails techniques : oriente la présentation sur la culture du support (le charme de l'analogique, la nostalgie du pressage) et les critères de collection Goldmine.
 
-Utilise exactement l'URL présente dans le champ "url" du JSON. NE LA MODIFIE PAS.
+- Pour CHAQUE produit, insère obligatoirement le bouton d'achat avec la balise exacte suivante :
 
-- Analyse la description du produit. Si tu y trouves des indications d'état de conservation du disque ou de la pochette (par exemple des mentions comme "État pochette", "État disque", ou des grades comme VG++, EX, M-, VG, Goldmine), tu DOIS rédiger une courte note d'expert disquaire pour rassurer le collectionneur sur la qualité d'écoute et la valeur de cet exemplaire. Si aucune indication d'état n'est présente dans le texte fourni, ne mentionne rien et poursuis l'article normalement.
-- Si la description d'un produit est très courte ou vide :
-  Ne brode pas de faux détails techniques. Oriente la présentation sur la culture du support (le charme du sillon analogique, la nostalgie de la cassette ou de la première édition CD), le plaisir d'explorer des pépites oubliées et l'évaluation de l'état physique selon les critères de collectionneurs (grille Goldmine).
+[Découvrir cet exemplaire d'occasion](__URL_PRODUIT_0__){{:target="_blank" rel="noopener"}}
+
+(⚠️ Remplace le chiffre "0" par l'index du produit : __URL_PRODUIT_0__ pour le premier produit du JSON, __URL_PRODUIT_1__ pour le deuxième, etc. N'écris JAMAIS d'adresse http réelle dans le texte, utilise EXCLUSIVEMENT ces balises).
 
 ==================================================
 5. SECTION CONSEILS (CONSERVATION / ENTRETIEN)
