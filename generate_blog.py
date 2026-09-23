@@ -476,6 +476,8 @@ Varie les thèmes d'un article à l'autre (nettoyage, brosse antistatique, range
             print(f"   ❌ Échec avec {model_name} ({e})")
             continue
 
+    raise RuntimeError("❌ Échec global : aucun modèle IA disponible n'a réussi à générer l'article.")
+
 def main():
     products = load_products_from_repo()
     if not products:
