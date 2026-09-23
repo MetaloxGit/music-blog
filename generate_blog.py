@@ -379,6 +379,8 @@ Les données JSON ci-dessus sont ta seule source de vérité pour le matériel. 
 
 Utilise exactement l'URL présente dans le champ "url" du JSON. NE LA MODIFIE PAS.
 
+- Repère la mention d'état du support au début de la description (exemple: État pochette :  |  État disque : ). Tu dois obligatoirement intégrer une analyse d'expert disquaire sur la qualité de conservation et d'écoute de cet exemplaire précis.
+
 - Si la description d'un produit est très courte ou vide :
   Ne brode pas de faux détails techniques. Oriente la présentation sur la culture du support (le charme du sillon analogique, la nostalgie de la cassette ou de la première édition CD), le plaisir d'explorer des pépites oubliées et l'évaluation de l'état physique selon les critères de collectionneurs (grille Goldmine).
 
@@ -423,7 +425,7 @@ Varie les thèmes d'un article à l'autre (nettoyage, brosse antistatique, range
                 {"role": "user", "content": prompt},
             ],
             "model": model_name,
-            "temperature": 0.2,  # Température très basse = réponse stricte, factuelle et sans invention
+            "temperature": 0.3,  # Température très basse = réponse stricte, factuelle et sans invention
         }).encode("utf-8")
 
         req = urllib.request.Request(url, data=payload, headers=headers, method="POST")
