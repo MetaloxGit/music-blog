@@ -10,7 +10,7 @@ Andre DUBONNET et ses Rhythmes, sur ce 45T Ronnex Rds, sonne comme une trouvaill
 
 Pour le collectionneur, l'intérêt tient aux indices physiques : un support d'occasion, une mention NO PS qui, selon l'usage des fiches disquaires, peut renvoyer à l'absence de pochette illustrée ou de livret photo, et le code [boit12] qui ressemble à un repère interne de stock. Ces détails aident à situer le disque dans la culture du 7" : format compact, lecture immédiate, groove court, dynamique sonore et valeur de pièce de collection.
 
-[Découvrir cet exemplaire d'occasion](https://metaloxgit.github.io/music-records/item_30055x45.html){:target="_blank" rel="noopener"}
+[Découvrir cet exemplaire d'occasion](https://metaloxgit.github.io/music-records/item_3051852268.html){:target="_blank" rel="noopener"}
 
 ## Ranger les 45T à la verticale
 
