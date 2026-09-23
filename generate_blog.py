@@ -457,7 +457,7 @@ Varie les thèmes d'un article à l'autre (nettoyage, brosse antistatique, range
                 {"role": "user", "content": prompt},
             ],
             "model": model_name,
-            "temperature": 0.2,  # Température très basse = réponse stricte, factuelle et sans invention
+            "temperature": 0.3,  # Température très basse = réponse stricte, factuelle et sans invention
         }).encode("utf-8")
 
         req = urllib.request.Request(url, data=payload, headers=headers, method="POST")
