@@ -401,6 +401,9 @@ Varie les thèmes d'un article à l'autre (nettoyage, brosse antistatique, range
 - Format de réponse : Retourne UNIQUEMENT l'article final en Markdown brut, sans bloc de code (pas de ```markdown), sans commentaire ni note introductive.
 """
 
+    print("--- CONTENU DU JSON ENVOYÉ À L'IA ---")
+    print(json.dumps(products_formatted, ensure_ascii=False, indent=2))
+
     candidate_models = [
     # 1. Le maître incontesté en open-weights (70B) - Excellent en français et rédaction
     "meta-llama/llama-3.3-70b-instruct:free",
