@@ -379,8 +379,6 @@ Les données JSON ci-dessus sont ta seule source de vérité pour le matériel. 
 
 Utilise exactement l'URL présente dans le champ "url" du JSON. NE LA MODIFIE PAS.
 
-- Analyse la description du produit. Si tu y trouves des indications d'état de conservation du disque ou de la pochette (par exemple des mentions comme "État pochette", "État disque", ou des grades comme VG++, EX, M-, VG, Goldmine), tu DOIS rédiger une courte note d'expert disquaire pour rassurer le collectionneur sur la qualité d'écoute et la valeur de cet exemplaire. Si aucune indication d'état n'est présente dans le texte fourni, ne mentionne rien et poursuis l'article normalement.
-
 - Si la description d'un produit est très courte ou vide :
   Ne brode pas de faux détails techniques. Oriente la présentation sur la culture du support (le charme du sillon analogique, la nostalgie de la cassette ou de la première édition CD), le plaisir d'explorer des pépites oubliées et l'évaluation de l'état physique selon les critères de collectionneurs (grille Goldmine).
 
@@ -425,7 +423,7 @@ Varie les thèmes d'un article à l'autre (nettoyage, brosse antistatique, range
                 {"role": "user", "content": prompt},
             ],
             "model": model_name,
-            "temperature": 0.3,  # Température très basse = réponse stricte, factuelle et sans invention
+            "temperature": 0.2,  # Température très basse = réponse stricte, factuelle et sans invention
         }).encode("utf-8")
 
         req = urllib.request.Request(url, data=payload, headers=headers, method="POST")
