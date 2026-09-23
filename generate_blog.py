@@ -435,8 +435,24 @@ Varie les thèmes d'un article à l'autre (nettoyage, brosse antistatique, range
                 res = json.loads(response.read().decode("utf-8"))
                 content = res["choices"][0]["message"]["content"].strip()
 
-                if "User Safety" in content or len(content) < 50:
-                    print(f"   ⚠️ Le modèle {model_name} a renvoyé un message de sécurité ou texte trop court.")
+                # 1. Nettoyage des balises Markdown (```markdown) au début/fin
+                content = re.sub(r"^```markdown\s*", "", content, flags=re.MULTILINE)
+                content = re.sub(r"^```\s*", "", content, flags=re.MULTILINE)
+                content = re.sub(r"```$", "", content, flags=re.MULTILINE).strip()
+
+                # 2. Remplacement automatique des URL par les vraies adresses du JSON
+                for idx, p in enumerate(products_formatted):
+                    placeholder = f"__URL_PRODUIT_{idx}__"
+                    real_url = p.get("url", "")
+                    content = content.replace(placeholder, real_url)
+
+                # Sécurité au cas où l'IA aurait écrit "URL_EXACTE"
+                if products_formatted:
+                    content = content.replace("URL_EXACTE", products_formatted[0].get("url", ""))
+
+                # 3. Contrôle de validité de la réponse
+                if "User Safety" in content or len(content) < 100:
+                    print(f"   ⚠️ Le modèle {model_name} a renvoyé un message de sécurité ou un texte trop court.")
                     continue
 
                 print(f"   ✅ Succès avec le modèle : {model_name} !")
@@ -445,9 +461,6 @@ Varie les thèmes d'un article à l'autre (nettoyage, brosse antistatique, range
         except Exception as e:
             print(f"   ❌ Échec avec {model_name} ({e})")
             continue
-
-    # Si la boucle se termine sans aucun succès, on stoppe le script net
-    raise RuntimeError("❌ Échec global : aucun modèle IA disponible n'a réussi à générer l'article.")
 
 def main():
     products = load_products_from_repo()
