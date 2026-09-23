@@ -25,6 +25,7 @@ jobs:
       - name: Générer l'article avec l'IA
         env:
           OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
+          PYTHONUNBUFFERED: "1"
         run: python generate_blog.py
 
       - name: Commit et Push de l'article et de l'historique
