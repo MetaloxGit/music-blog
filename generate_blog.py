@@ -393,11 +393,14 @@ Les données JSON ci-dessus sont ta seule source de vérité pour le matériel. 
   * Si elle contient des indications d'état (ex. "État pochette", "État disque", ou des grades comme VG++, EX, M-, Mint, Goldmine), tu DOIS rédiger un paragraphe d'expert disquaire analysant la qualité de conservation et d'écoute de cet exemplaire précis.
   * Si la description est très courte ou sans mention d'état, ne brode pas de faux détails techniques : oriente la présentation sur la culture du support (le charme de l'analogique, la nostalgie du pressage) et les critères de collection Goldmine.
 
-- Pour CHAQUE produit, insère obligatoirement le bouton d'achat avec la balise exacte suivante :
+- Pour CHAQUE produit, insère obligatoirement le lien d'achat en gras avec le titre exact du disque :
 
-[Découvrir cet exemplaire d'occasion](__URL_PRODUIT_0__){{:target="_blank" rel="noopener"}}
+**[-> Découvrir : TITRE_DU_DISQUE](__URL_PRODUIT_0__){{:target="_blank" rel="noopener"}}**
 
-(⚠️ Remplace le chiffre "0" par l'index du produit : __URL_PRODUIT_0__ pour le premier produit du JSON, __URL_PRODUIT_1__ pour le deuxième, etc. N'écris JAMAIS d'adresse http réelle dans le texte, utilise EXCLUSIVEMENT ces balises).
+(⚠️ Exemples d'application :
+- Si le 1er produit se nomme "Besombe + Django Contre Zorro", écris :
+  **[-> Découvrir : Besombe + Django Contre Zorro](__URL_PRODUIT_0__){{:target="_blank" rel="noopener"}}**
+- Remplace le chiffre "0" par l'index du produit : __URL_PRODUIT_0__ pour le premier, __URL_PRODUIT_1__ pour le deuxième, etc. N'écris JAMAIS d'adresse http réelle dans le texte).
 
 ==================================================
 5. SECTION CONSEILS (CONSERVATION / ENTRETIEN)
