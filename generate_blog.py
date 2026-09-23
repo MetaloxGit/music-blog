@@ -249,7 +249,7 @@ def load_products_from_repo():
                                         item,
                                         ["description", "body", "summary", "og:description"],
                                         "",
-                                    )[:200],
+                                    )[:2000],
                                 })
                 except Exception:
                     continue
