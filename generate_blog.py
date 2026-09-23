@@ -135,6 +135,21 @@ def parse_item(content, filename=""):
             clean_h1 = re.sub(r"<[^>]+>", "", h1_match.group(1)).strip()
             item["h1"] = clean_h1
 
+        # 📍 EXTRACTION DU BLOC DIV.DESC (État + Texte)
+        desc_match = re.search(
+            r'<div\s+class=["\']desc["\'][^>]*>(.*?)</div>',
+            content,
+            re.DOTALL | re.IGNORECASE,
+        )
+        if desc_match:
+            raw_desc = desc_match.group(1)
+            # Nettoyage des balises HTML et entités
+            clean_desc = re.sub(r"<br\s*/?>", " ", raw_desc)
+            clean_desc = clean_desc.replace("&nbsp;", " ")
+            clean_desc = re.sub(r"<[^>]+>", " ", clean_desc)
+            clean_desc = re.sub(r"\s+", " ", clean_desc).strip()
+            item["description"] = html.unescape(clean_desc)
+
         if item:
             return [item]
 
@@ -249,7 +264,7 @@ def load_products_from_repo():
                                         item,
                                         ["description", "body", "summary", "og:description"],
                                         "",
-                                    )[:2000],
+                                    ),
                                 })
                 except Exception:
                     continue
