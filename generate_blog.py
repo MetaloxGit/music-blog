@@ -667,7 +667,7 @@ def main():
 
     # 2. Lien Markdown vers l'image
     image_alt = f"{target_artist} - {first_title} ({first_format})"
-    image_markdown = f"![{image_alt}]({{{{ site.baseurl }}}}/assets/images/posts/{image_filename})\n\n"
+    image_markdown = f'<img src="{{{{ site.baseurl }}}}/assets/images/posts/{image_filename}" alt="{image_alt}" style="width: 60%; min-width: 280px; max-width: 500px; height: auto; display: block; margin: 0 auto 1.5rem auto;" />\n\n'
 
     # 3. Assemblage du fichier Markdown final (Frontmatter + Image + Contenu AI)
     full_post = f"""---
