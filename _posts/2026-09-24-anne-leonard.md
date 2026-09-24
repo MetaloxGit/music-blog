@@ -4,7 +4,7 @@ title: "Anne Leonard en vinyle ou CD d'occasion (collector)"
 artist: "Anne Leonard"
 ---
 
-![Anne Leonard - Ma P&#x27;tite Culotte / James Le Clochard Céleste (45T x 1) (Support d'occasion)](/assets/images/posts/anne-leonard.webp)
+![Anne Leonard - Ma P&#x27;tite Culotte / James Le Clochard Céleste (45T x 1) (Support d'occasion)]({{ site.baseurl }}/assets/images/posts/anne-leonard.webp)
 
 Deux faces d'un même mystère français, pressées sur vinyle 7 pouces, attendent le passage de la cellule. Le titre principal, *Ma P'tite Culotte*, évoque cette chanson française à texte, parfois grivoise, parfois tendre, qui peuplait les juke-box et les radios libres des années 70. La face B, *James Le Clochard Céleste*, promet une narration plus sombre, un portrait social typique de l'époque. Anne Leonard reste une énigme discographique : aucune biographie officielle ne ressort des sillons, pas de discographie pléthorique dans les bases de données. C'est précisément ce silence qui rend l'objet précieux pour le digger. On tient là un pressage d'époque, français, témoin d'une production artisanale ou d'un coup d'essai resté confidentiel. La rareté ne crie pas, elle se murmure dans le grain du vinyl.
 
