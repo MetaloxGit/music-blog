@@ -8,6 +8,7 @@ import urllib.error
 import urllib.request
 import zipfile
 import hashlib
+import math
 import os
 from datetime import datetime
 from pathlib import Path
@@ -24,71 +25,116 @@ MIN_PRODUCTS = 1  # Seuil minimal de produits pour un artiste
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 
 
+import html
+import hashlib
+import math
+import os
+from PIL import Image, ImageDraw, ImageFont
+
 def generate_cover_image(artist, title, format_name, output_path):
-    """Génère une carte d'identité visuelle WebP ultra-mégère pour le SEO."""
-# 📍 NETTOYAGE DES CARACTÈRES SPÉCIAUX (&#x27; -> ', &amp; -> &, etc.)
-    artist = html.unescape(artist)
-    title = html.unescape(title)
-    if format_name:
-        format_name = html.unescape(format_name)
-    
+    """
+    Génère une image 1000x1000 'Minimaliste Vectoriel Hybride'
+    adaptée au format (Vinyle, CD, Cassette) avec dégradé radial et filigrane.
+    """
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-# 1. Dimensions réduites à 500x500 (parfait pour le web)
-    width, height = 500, 500
+
+    # 1. Nettoyage des entités HTML (ex: &#x27; -> ')
+    artist = html.unescape(artist or "Artiste Inconnu")
+    title = html.unescape(title or "Album")
+    format_clean_text = html.unescape(format_name or "VINYLE / CD")
+
+    width, height = 1000, 1000
+
+    # 2. Génération de couleurs dynamiques uniques (basées sur le hachage de l'artiste)
+    h = hashlib.md5(artist.encode("utf-8")).hexdigest()
+    # Couleur centrale
+    r1, g1, b1 = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    r1, g1, b1 = min(220, r1 + 50), min(220, g1 + 50), min(220, b1 + 50)
+    # Couleur des bords (assombrie pour créer un dégradé radial doux)
+    r2, g2, b2 = int(r1 * 0.25), int(g1 * 0.25), int(b1 * 0.25)
+
+    # 3. Création du fond en dégradé radial
     img = Image.new("RGB", (width, height))
     draw = ImageDraw.Draw(img)
+    cx, cy = width / 2, height / 2
+    max_dist = math.sqrt(cx**2 + cy**2)
 
-    # 2. Arrière-plan : Dégradé
-    h = hashlib.md5(artist.encode("utf-8")).hexdigest()
-    r1, g1, b1 = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
-    r2, g2, b2 = max(10, int(r1 * 0.15)), max(10, int(g1 * 0.15)), max(10, int(b1 * 0.15))
+    for r in range(int(max_dist), 0, -4):
+        ratio = r / max_dist
+        r_c = int(r1 * (1 - ratio) + r2 * ratio)
+        g_c = int(g1 * (1 - ratio) + g2 * ratio)
+        b_c = int(b1 * (1 - ratio) + b2 * ratio)
+        draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=(r_c, g_c, b_c))
 
-    for y in range(height):
-        ratio = y / height
-        r = int(r1 * (1 - ratio) + r2 * ratio)
-        g = int(g1 * (1 - ratio) + g2 * ratio)
-        b = int(b1 * (1 - ratio) + b2 * ratio)
-        draw.line([(0, y), (width, y)], fill=(r, g, b))
+    # 4. Forme iconique en filigrane discret (~5% d'opacité)
+    overlay = Image.new("RGBA", (width, height), (0, 0, 0, 0))
+    ov_draw = ImageDraw.Draw(overlay)
+    watermark_color = (255, 255, 255, 18) # Opacité très faible
 
-    # 3. Sillons de vinyle ajustés
-    cx, cy = 250, 250
-    for radius in range(210, 40, -20):
-        draw.ellipse(
-            [cx - radius, cy - radius, cx + radius, cy + radius],
-            outline=(255, 255, 255, 15),
-            width=1,
-        )
+    fmt_lower = format_clean_text.lower()
+    if "cd" in fmt_lower:
+        # Forme CD (Anneau extérieur + centre)
+        ov_draw.ellipse([180, 180, 820, 820], outline=watermark_color, width=10)
+        ov_draw.ellipse([420, 420, 580, 580], outline=watermark_color, width=6)
+        ov_draw.ellipse([460, 460, 540, 540], outline=watermark_color, width=4)
+    elif "cassette" in fmt_lower or "k7" in fmt_lower:
+        # Forme Cassette
+        ov_draw.rounded_rectangle([180, 260, 820, 740], radius=35, outline=watermark_color, width=10)
+        ov_draw.ellipse([310, 420, 450, 560], outline=watermark_color, width=6)
+        ov_draw.ellipse([550, 420, 690, 560], outline=watermark_color, width=6)
+        ov_draw.rectangle([280, 610, 720, 700], outline=watermark_color, width=4)
+    else:
+        # Forme Vinyle (Sillons concentriques)
+        for radius in range(430, 120, -35):
+            ov_draw.ellipse([cx - radius, cy - radius, cx + radius, cy + radius], outline=watermark_color, width=3)
 
-    # 4. Tailles de polices réajustées
+    img = Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
+    draw = ImageDraw.Draw(img)
+
+    # 5. Polices de caractères
     try:
-        font_artist = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 26)
-        font_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18)
-        font_badge = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 11)
+        font_artist = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 52)
+        font_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 34)
+        font_badge = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 22)
+        font_icon = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 20)
     except Exception:
-        font_artist = font_title = font_badge = ImageFont.load_default()
+        font_artist = font_title = font_badge = font_icon = ImageFont.load_default()
 
-    # 5. Macaron "OCCASION"
-    draw.rounded_rectangle([360, 25, 470, 55], radius=6, fill=(245, 158, 11))
-    draw.text((415, 40), "OCCASION", fill=(0, 0, 0), font=font_badge, anchor="mm")
+    # 6. Macaron "OCCASION" (En haut à droite) - Badge Circulaire Jaune Vif
+    draw.ellipse([780, 60, 940, 220], fill=(255, 204, 0))
+    draw.text((860, 140), "OCCASION", fill=(0, 0, 0), font=font_badge, anchor="mm")
 
-    # 6. Textes principaux
+    # 7. Contenu Principal (Texte au centre)
     artist_text = artist.upper()
-    if len(artist_text) > 25:
-        artist_text = artist_text[:23] + "..."
+    if len(artist_text) > 28:
+        artist_text = artist_text[:25] + "..."
 
     title_text = title
-    if len(title_text) > 35:
-        title_text = title_text[:33] + "..."
+    if len(title_text) > 40:
+        title_text = title_text[:37] + "..."
 
-    draw.text((250, 225), artist_text, fill=(255, 255, 255), font=font_artist, anchor="mm")
-    draw.text((250, 265), title_text, fill=(220, 220, 220), font=font_title, anchor="mm")
+    draw.text((500, 450), artist_text, fill=(255, 255, 255), font=font_artist, anchor="mm")
+    draw.text((500, 525), title_text, fill=(220, 220, 220), font=font_title, anchor="mm")
 
-    # 7. Tag Format
-    fmt_clean = format_name.upper() if format_name else "VINYLE / CD"
-    draw.text((30, 455), f"FORMAT : {fmt_clean}", fill=(180, 180, 180), font=font_badge)
+    # 8. Icône + Tag Format (En bas à gauche)
+    draw.rounded_rectangle([50, 890, 330, 950], radius=12, fill=(0, 0, 0, 120), outline=(255, 255, 255, 60), width=2)
 
-    # 8. Export WebP haute compression (< 10 Ko)
-    img.save(output_path, "WEBP", quality=50, method=6)
+    # Dessin vectoriel simplifié de l'icône
+    if "cd" in fmt_lower:
+        draw.ellipse([70, 908, 102, 938], outline=(255, 255, 255), width=2)
+        draw.ellipse([82, 919, 90, 927], fill=(255, 255, 255))
+    elif "cassette" in fmt_lower or "k7" in fmt_lower:
+        draw.rectangle([70, 910, 102, 934], outline=(255, 255, 255), width=2)
+        draw.ellipse([76, 918, 82, 924], outline=(255, 255, 255), width=1)
+        draw.ellipse([90, 918, 96, 924], outline=(255, 255, 255), width=1)
+    else: # Vinyle
+        draw.ellipse([70, 908, 102, 938], outline=(255, 255, 255), width=2)
+        draw.ellipse([81, 918, 91, 928], outline=(255, 255, 255), width=1)
+
+    draw.text((118, 922), format_clean_text.upper()[:14], fill=(255, 255, 255), font=font_icon, anchor="lm")
+
+    # 9. Export WebP optimisé (Super léger ~10-15 Ko)
+    img.save(output_path, "WEBP", quality=75, method=6)
 
 
 def slugify(text):
