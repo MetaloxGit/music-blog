@@ -600,43 +600,38 @@ def main():
     today_str = datetime.now().strftime("%Y-%m-%d")
     filename = f"{POSTS_DIR}/{today_str}-{slugify(target_artist)}.md"
 
-# --- DANS LA BOUCLE PRINCIPALE DE CRÉATION DE L'ARTICLE ---
+# --- GÉNÉRATION DE L'IMAGE ET ÉCRITURE DE L'ARTICLE ---
+    slug_artist = slugify(target_artist)
+    image_filename = f"{slug_artist}.webp"
+    image_rel_path = f"assets/images/posts/{image_filename}"
+    image_abs_path = os.path.join(os.getcwd(), image_rel_path)
 
-# 1. Nommage des fichiers
-slug_artist = re.sub(r"[^\w\-]", "", artist.lower().replace(" ", "-"))
-image_filename = f"{slug_artist}.webp"
-image_rel_path = f"assets/images/posts/{image_filename}"
-image_abs_path = os.path.join(os.getcwd(), image_rel_path)
+    first_p = target_products[0] if target_products else {}
+    first_title = first_p.get("title", "")
+    first_format = first_p.get("format", "Occasion")
 
-# 2. Récupération des infos du premier produit pour le visuel
-first_product = products[0] if products else {}
-first_title = first_product.get("title", "")
-first_format = first_product.get("format", "Occasion")
+    # 1. Création de l'image WebP sur le disque
+    generate_cover_image(target_artist, first_title, first_format, image_abs_path)
 
-# 3. Génération de l'image
-generate_cover_image(artist, first_title, first_format, image_abs_path)
+    # 2. Lien Markdown vers l'image
+    image_alt = f"{target_artist} - {first_title} ({first_format})"
+    image_markdown = f"![{image_alt}](/{image_rel_path})\n\n"
 
-# 4. En-tête de l'article avec balise SEO Image
-image_alt = f"{artist} - {first_title} ({first_format})"
-markdown_image_header = f"![{image_alt}](/{image_rel_path})\n\n"
-
-# 5. Écriture du fichier final
-final_content = markdown_image_header + article_content
-
-with open(filepath, "w", encoding="utf-8") as f:
-    f.write(final_content)
-    
+    # 3. Assemblage du fichier Markdown final (Frontmatter + Image + Contenu AI)
     full_post = f"""---
 layout: post
 title: "{target_artist} en vinyle ou CD d'occasion (collector)"
 artist: "{target_artist}"
 ---
 
-{content}
+{image_markdown}{content}
 """
 
+    # 4. Enregistrement
     with open(filename, "w", encoding="utf-8") as f:
         f.write(full_post)
+
+
 
     history.add(target_artist)
     save_history(history)
