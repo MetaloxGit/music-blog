@@ -7,8 +7,11 @@ import re
 import urllib.error
 import urllib.request
 import zipfile
+import hashlib
+import os
 from datetime import datetime
 from pathlib import Path
+from PIL import Image, ImageDraw, ImageFont
 
 # --- CONFIGURATION DU DÉPÔT SOURCE ---
 REPO_OWNER = "MetaloxGit"
@@ -19,6 +22,67 @@ POSTS_DIR = "_posts"
 MIN_PRODUCTS = 1  # Seuil minimal de produits pour un artiste
 
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
+
+
+def generate_cover_image(artist, title, format_name, output_path):
+    """Génère une carte d'identité visuelle WebP ultra-mégère (< 10 Ko) pour le SEO."""
+    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    width, height = 1000, 1000
+    img = Image.new("RGB", (width, height))
+    draw = ImageDraw.Draw(img)
+
+    # 1. Palette de couleurs basée sur le nom de l'artiste (unique et déterministe)
+    h = hashlib.md5(artist.encode("utf-8")).hexdigest()
+    r1, g1, b1 = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    r2, g2, b2 = max(10, int(r1 * 0.15)), max(10, int(g1 * 0.15)), max(10, int(b1 * 0.15))
+
+    # 2. Arrière-plan : Dégradé linéaire
+    for y in range(height):
+        ratio = y / height
+        r = int(r1 * (1 - ratio) + r2 * ratio)
+        g = int(g1 * (1 - ratio) + g2 * ratio)
+        b = int(b1 * (1 - ratio) + b2 * ratio)
+        draw.line([(0, y), (width, y)], fill=(r, g, b))
+
+    # 3. Forme vectorielle légère en arrière-plan (Sillons de vinyle)
+    cx, cy = 500, 500
+    for radius in range(420, 80, -40):
+        draw.ellipse(
+            [cx - radius, cy - radius, cx + radius, cy + radius],
+            outline=(255, 255, 255, 15),
+            width=2,
+        )
+
+    # 4. Polices de caractères (Fallback automatique sur Ubuntu Runner)
+    try:
+        font_artist = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 52)
+        font_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 36)
+        font_badge = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 22)
+    except Exception:
+        font_artist = font_title = font_badge = ImageFont.load_default()
+
+    # 5. Macaron "OCCASION" (Haut Droite)
+    draw.rounded_rectangle([720, 50, 940, 110], radius=12, fill=(245, 158, 11))
+    draw.text((830, 80), "OCCASION", fill=(0, 0, 0), font=font_badge, anchor="mm")
+
+    # 6. Textes principaux (Centrés)
+    artist_text = artist.upper()
+    if len(artist_text) > 25:
+        artist_text = artist_text[:23] + "..."
+
+    title_text = title
+    if len(title_text) > 35:
+        title_text = title_text[:33] + "..."
+
+    draw.text((500, 450), artist_text, fill=(255, 255, 255), font=font_artist, anchor="mm")
+    draw.text((500, 530), title_text, fill=(220, 220, 220), font=font_title, anchor="mm")
+
+    # 7. Tag Format (Bas Gauche)
+    fmt_clean = format_name.upper() if format_name else "VINYLE / CD"
+    draw.text((60, 910), f"FORMAT : {fmt_clean}", fill=(180, 180, 180), font=font_badge)
+
+    # 8. Export WebP haute compression (< 10 Ko)
+    img.save(output_path, "WEBP", quality=75, method=6)
 
 
 def slugify(text):
