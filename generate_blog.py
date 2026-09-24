@@ -27,16 +27,16 @@ GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 def generate_cover_image(artist, title, format_name, output_path):
     """Génère une carte d'identité visuelle WebP ultra-mégère (< 10 Ko) pour le SEO."""
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
-    width, height = 1000, 1000
+# 1. Dimensions réduites à 500x500 (parfait pour le web)
+    width, height = 500, 500
     img = Image.new("RGB", (width, height))
     draw = ImageDraw.Draw(img)
 
-    # 1. Palette de couleurs basée sur le nom de l'artiste (unique et déterministe)
+    # 2. Arrière-plan : Dégradé
     h = hashlib.md5(artist.encode("utf-8")).hexdigest()
     r1, g1, b1 = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
     r2, g2, b2 = max(10, int(r1 * 0.15)), max(10, int(g1 * 0.15)), max(10, int(b1 * 0.15))
 
-    # 2. Arrière-plan : Dégradé linéaire
     for y in range(height):
         ratio = y / height
         r = int(r1 * (1 - ratio) + r2 * ratio)
@@ -44,28 +44,28 @@ def generate_cover_image(artist, title, format_name, output_path):
         b = int(b1 * (1 - ratio) + b2 * ratio)
         draw.line([(0, y), (width, y)], fill=(r, g, b))
 
-    # 3. Forme vectorielle légère en arrière-plan (Sillons de vinyle)
-    cx, cy = 500, 500
-    for radius in range(420, 80, -40):
+    # 3. Sillons de vinyle ajustés
+    cx, cy = 250, 250
+    for radius in range(210, 40, -20):
         draw.ellipse(
             [cx - radius, cy - radius, cx + radius, cy + radius],
             outline=(255, 255, 255, 15),
-            width=2,
+            width=1,
         )
 
-    # 4. Polices de caractères (Fallback automatique sur Ubuntu Runner)
+    # 4. Tailles de polices réajustées
     try:
-        font_artist = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 52)
-        font_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 36)
-        font_badge = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 22)
+        font_artist = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 26)
+        font_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 18)
+        font_badge = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 11)
     except Exception:
         font_artist = font_title = font_badge = ImageFont.load_default()
 
-    # 5. Macaron "OCCASION" (Haut Droite)
-    draw.rounded_rectangle([720, 50, 940, 110], radius=12, fill=(245, 158, 11))
-    draw.text((830, 80), "OCCASION", fill=(0, 0, 0), font=font_badge, anchor="mm")
+    # 5. Macaron "OCCASION"
+    draw.rounded_rectangle([360, 25, 470, 55], radius=6, fill=(245, 158, 11))
+    draw.text((415, 40), "OCCASION", fill=(0, 0, 0), font=font_badge, anchor="mm")
 
-    # 6. Textes principaux (Centrés)
+    # 6. Textes principaux
     artist_text = artist.upper()
     if len(artist_text) > 25:
         artist_text = artist_text[:23] + "..."
@@ -74,15 +74,15 @@ def generate_cover_image(artist, title, format_name, output_path):
     if len(title_text) > 35:
         title_text = title_text[:33] + "..."
 
-    draw.text((500, 450), artist_text, fill=(255, 255, 255), font=font_artist, anchor="mm")
-    draw.text((500, 530), title_text, fill=(220, 220, 220), font=font_title, anchor="mm")
+    draw.text((250, 225), artist_text, fill=(255, 255, 255), font=font_artist, anchor="mm")
+    draw.text((250, 265), title_text, fill=(220, 220, 220), font=font_title, anchor="mm")
 
-    # 7. Tag Format (Bas Gauche)
+    # 7. Tag Format
     fmt_clean = format_name.upper() if format_name else "VINYLE / CD"
-    draw.text((60, 910), f"FORMAT : {fmt_clean}", fill=(180, 180, 180), font=font_badge)
+    draw.text((30, 455), f"FORMAT : {fmt_clean}", fill=(180, 180, 180), font=font_badge)
 
     # 8. Export WebP haute compression (< 10 Ko)
-    img.save(output_path, "WEBP", quality=75, method=6)
+    img.save(output_path, "WEBP", quality=50, method=6)
 
 
 def slugify(text):
