@@ -25,7 +25,13 @@ GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 
 
 def generate_cover_image(artist, title, format_name, output_path):
-    """Génère une carte d'identité visuelle WebP ultra-mégère (< 10 Ko) pour le SEO."""
+    """Génère une carte d'identité visuelle WebP ultra-mégère pour le SEO."""
+# 📍 NETTOYAGE DES CARACTÈRES SPÉCIAUX (&#x27; -> ', &amp; -> &, etc.)
+    artist = html.unescape(artist)
+    title = html.unescape(title)
+    if format_name:
+        format_name = html.unescape(format_name)
+    
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 # 1. Dimensions réduites à 500x500 (parfait pour le web)
     width, height = 500, 500
