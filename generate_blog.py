@@ -465,7 +465,8 @@ def generate_article_with_ai(artist, products):
 
     prompt = f"""Tu es un journaliste musical expert, collectionneur passionné et disquaire spécialisé dans les supports physiques d'occasion (vinyles, CD, cassettes audio).
 Tu rédiges des articles de blog en français, immersifs, très documentés, naturels et optimisés pour le référencement naturel (SEO).
-
+- Langue obligatoire : L'intégralité du texte (analyses, descriptions, commentaires) doit être rédigée exclusivement en français. Aucune phrase ou paragraphe entier ne doit être rédigé en anglais.
+- Jargon autorisé : Conserve uniquement les anglicismes et termes techniques légitimes du vocabulaire des collectionneurs (ex. pressing, inner sleeve, jewel case, gatefold, mint, VG+, artwork, tracklist ...), mais toujours intégrés au sein de phrases françaises.
 Ta mission est de rédiger un article d'expertise consacré à l'artiste ou au groupe :
 {artist}
 
