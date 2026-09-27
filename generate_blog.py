@@ -51,9 +51,12 @@ def generate_cover_image(artist, title, format_name, output_path):
 
     # 3. Couleurs dynamiques (Hachage Artiste)
     h = hashlib.md5(artist.encode("utf-8")).hexdigest()
-    r1, g1, b1 = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
-    r1, g1, b1 = min(220, r1 + 50), min(220, g1 + 50), min(220, b1 + 50)
-    r2, g2, b2 = int(r1 * 0.25), int(g1 * 0.25), int(b1 * 0.25)
+    # Couleur vive projetée vers les BORDS
+    r2, g2, b2 = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
+    r2, g2, b2 = min(220, r2 + 50), min(220, g2 + 50), min(220, b2 + 50)
+    
+    # Couleur très sombre (15%) au CENTRE pour faire ressortir le texte blanc
+    r1, g1, b1 = int(r2 * 0.15), int(g2 * 0.15), int(b2 * 0.15)
 
     # 4. Fond Dégradé Radial (500x500)
     img = Image.new("RGB", (width, height))
@@ -570,7 +573,7 @@ Varie les thèmes d'un article à l'autre (nettoyage, brosse antistatique, range
                 {"role": "user", "content": prompt},
             ],
             "model": model_name,
-            "temperature": 0.3,  # Température très basse = réponse stricte, factuelle et sans invention
+            "temperature": 0.2,  # Température très basse = réponse stricte, factuelle et sans invention
         }).encode("utf-8")
 
         req = urllib.request.Request(url, data=payload, headers=headers, method="POST")
