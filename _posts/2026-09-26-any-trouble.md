@@ -5,7 +5,7 @@ artist: "Any Trouble"
 ---
 
 <img src="{{ site.baseurl }}/assets/images/posts/any-trouble.webp" alt="Any Trouble - Touch And Go (Maxi 45T) (Support d'occasion)" style="width: 60%; min-width: 280px; max-width: 500px; height: auto; display: block; margin: 0 auto 1.5rem auto;" />
-Three copies of the same UK 12-inch pressing sit on the counter. Same catalogue number, same year, same label. Yet each tells a slightly different story through its wear. For the digger hunting the definitive version of Any Trouble’s "Touch And Go", the devil is in the groove and the ring wear on the sleeve.
+Quelques exemplaires d'un même pressage britannique de maxi 45 tours sont posés sur le comptoir. Même numéro de catalogue, même année, même label. Pourtant, chacun raconte une histoire légèrement différente à travers ses traces d'usure. Pour le chineur en quête de la version ultime de « Touch And Go » d'Any Trouble, tout se joue dans le sillon et dans la marque circulaire (ring wear) laissée par le disque sur la pochette.
 
 ## Touch And Go – Maxi 45T (Réf. 12EA 154)
 
