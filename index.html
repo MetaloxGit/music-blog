@@ -8,18 +8,18 @@ title: "Derniers articles !"
 </p>
 <p>Fan de vinyles, de CD chinés, de K7 d'époque ou de merch vintage ? Bienvenue. Ici, on ne jure que par le son du physique, les objets qui ont vécu et les bonnes trouvailles d'occasion.</p>
 
-<h2 style="margin-top: 2rem;">
+<p style="margin-top: 2rem;">
   Dernières sélections et articles 'Artiste' : 
   {% if paginator.page > 1 %}
     — Page {{ paginator.page }}
   {% endif %}
-</h2>
+</p>
 
 <!-- Liste des 30 articles distribués par la pagination -->
 <div class="posts-list">
   {% for post in paginator.posts %}
     <article class="post-card" style="margin-bottom: 1.5rem;">
-      <h3><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h3>
+      <h2><a href="{{ post.url | relative_url }}">{{ post.title }}</a></h2>
       <p>{{ post.excerpt | strip_html | truncatewords: 30 }}</p>
     </article>
   {% endfor %}
