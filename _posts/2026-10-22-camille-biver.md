@@ -1,0 +1,26 @@
+---
+layout: post
+title: "Camille Biver en vinyle ou CD d'occasion (collector)"
+artist: "Camille Biver"
+---
+
+<img src="{{ site.baseurl }}/assets/images/posts/camille-biver.webp" alt="Camille Biver - S/t - Hiver (33T) (Support d'occasion)" style="width: 60%; min-width: 280px; max-width: 500px; height: auto; display: block; margin: 0 auto 1.5rem auto;" />
+Camille Biver reste l'une de ces énigmes discographiques que seul le *digging* acharné dans les bacs oubliés permet de croiser. Absent des radars mainstream, cet artiste — probablement issu de la scène *private press* francophone des années 70/80 — incarne cette France profonde du folk intimiste ou de la chanson d'auteur, pressée à compte d'auteur sur des microsillons aujourd'hui introuvables. La rareté signalée sur ces trois références (« TRES RARE ORIGINAL ») n'est pas un argument marketing : c'est la réalité du terrain pour des pressages qui n'ont souvent pas dépassé les 300 ou 500 exemplaires, vendus à la sortie des concerts ou par correspondance. L'absence de matrice ou de label identifié dans la description renforce l'hypothèse d'une autoproduction artisanale, ce qui confère à chaque exemplaire une valeur documentaire autant qu'esthétique.
+
+## S/t - Hiver : un exemplaire NM dédicacé
+La première occurrence de cet album éponyme — ou titré « Hiver » selon la graphie du dos — présente une conservation muséale. La double notation **NM / NM** (Near Mint) sur pochette et disque selon la grille Goldmine indique un exemplaire qui n'a virtually jamais tourné sur une platine, ou manipulé avec une précaution chirurgicale. L'absence de *ring wear* (usure d'anneau) sur le carton, l'éclat du *artwork* d'origine et la rigidité du vinyle suggèrent un stockage vertical parfait, à l'abri de l'humidité et des variations thermiques. La « SUPERBE DEDICACE AU VERSO » transforme cet objet en pièce unique : l'encre d'époque, souvent à bille ou feutre, a traversé les décennies sans baver, témoignant d'une chimie du papier stable. Pour le collectionneur, c'est le *graal* : l'état *mint* préserve la dynamique sonore originale, sans *surface noise* parasite, offrant une immersion brute dans l'intention artistique de Biver.
+
+**[-> Découvrir : S/t - Hiver (33T)](https://metaloxgit.github.io/music-records/item_3051852648.html){:target="_blank" rel="noopener"}**
+
+## Camille Biver : l'album éponyme en état neuf
+Ce second 33 tours, simplement titré « Camille Biver », affiche la même excellence de conservation : **NM / NM**. La mention « LP Album - ex/ex : DEDICATED on back » confirme le standard *excellent/excellent* (équivalent NM) pour les deux composants. On note ici une graphie différente pour la dédicace (« DEDICATED » en anglais), ce qui peut indiquer un exemplaire destiné à un contact international, un programmateur radio ou un journaliste de l'époque, ou simplement l'habitude de l'artiste. Le *gatefold* ou la pochette simple (non précisé mais probable pour un LP *private press*) a conservé sa structure, ses coins vifs et son *inner sleeve* d'origine si présent. Ce niveau de fraîcheur sur un pressage *obscur* est statistiquement anormal : la plupart de ces disques ont vécu dans des caves, subissant *warp* (voile) et *seam split* (fente de couture). Celui-ci a échappé à l'entropie.
+
+**[-> Découvrir : Camille Biver (33T)](https://metaloxgit.github.io/music-records/item_3193448027.html){:target="_blank" rel="noopener"}**
+
+## S/T : Hiver, une seconde copie EX/EX dédicacée
+Troisième entrée, second exemplaire de « Hiver », mais dans un état **EX / EX** (Excellent). Sur l'échelle Goldmine, *Excellent* autorise de très légères marques de manipulation : un *hairline* (micro-rayure) visible sous rasant sans incidence sur la lecture, un début d'usure sur les arêtes de la pochette, ou une légère décoloration du dos. C'est l'état « joueur » par excellence : le disque a servi, a été écouté, aimé, mais respecté. La présence d'une nouvelle « SUPERBE DEDICACE AU VERSO » (formulation quasi identique au premier exemplaire) suggère que Biver dédicaçait systématiquement ses ventes directes. Comparer les deux calligraphies — si l'on acquiert les deux — devient une analyse graphologique fascinante. Ce pressage *EX* offrira une écoute chaleureuse, avec ce léger *crackle* de fond qui, sur du folk acoustique, participe souvent à l'atmosphère *lo-fi* recherchée par les amateurs du genre.
+
+**[-> Découvrir : S/T : Hiver (33T)](https://metaloxgit.github.io/music-records/item_3207194989.html){:target="_blank" rel="noopener"}**
+
+## Conseil d'expert : préserver les dédicaces au verso
+La constante sur ces trois pièces est la dédicace manuscrite au dos de la pochette. L'encre (souvent bille, roller ou feutre des années 70/80) est sensible aux UV, à l'acidité du papier et au frottement. **Ne jamais écrire ou tamponner par-dessus.** Pour l'archivage, glissez la pochette dans une *outer sleeve* en polypropylène (type *Polyliner* 100µ ou *Ultimate Outers*) sans PVC. Évitez les pochettes PVC « cristal » bon marché qui dégagent des plastifiants et collent au carton sur le long terme, risquant d'arracher l'encre de la dédicace à l'ouverture. Stockez le tout verticalement, sans compression latérale excessive, pour éviter le *ring wear* qui, sur un verso dédicacé, efface l'histoire autant que la valeur.
