@@ -1,0 +1,22 @@
+---
+layout: post
+title: "Los Chacos en vinyle ou CD d'occasion (collector)"
+artist: "Los Chacos"
+---
+
+<img src="{{ site.baseurl }}/assets/images/posts/los-chacos.webp" alt="Los Chacos - Amerique Du Sud - Chants Et Rythmes (33T) (Support d'occasion)" style="width: 60%; min-width: 280px; max-width: 500px; height: auto; display: block; margin: 0 auto 1.5rem auto;" />
+Un pressage sud-américain sous étiquette française, voilà le genre de pièce qui fait frémir le digger averti. Ce 33 tours estampillé **PILPUL Records** — structure satellite du catalogue **JBP** (Jean-Pierre Bourtayre) — porte le numéro de catalogue **206**. L'étiquette, sobre, ne livre que l'essentiel : *Amérique Du Sud - Chants Et Rythmes*. Pas de tracklist détaillée au dos, pas de notes de pochette explicatives, juste ce titre générique qui sent bon l'ethnographie de salon ou la bande-son d'un documentaire des années 70. Le mystère plane sur l'identité exacte de **Los Chacos** : formation folklorique authentique ou studio band parisien surfant sur la vague "world music" naissante ? L'absence de crédits musiciens sur la galette renforce l'hypothèse d'une production "library" ou d'un licenciement rapide pour le marché hexagonal.
+
+## Analyse de l'exemplaire : un VG- assumé, trace de vie
+
+L'exemplaire affiche un double **VG-** selon la grille Goldmine, tant pour la pochette que pour le vinyle. Concrètement, cela signifie une pièce qui a tourné, vécu, et qui ne prétend pas au statut "museum quality". La pochette présente des marques d'usure visibles sur les arêtes et les coins, sans doute le fruit d'un rangement vertical un peu serré ou de manipulations répétées. Le point d'intérêt majeur, pour l'historien du disque, réside dans les **dédicaces manuscrites au dos**. Une plume à bille, une encre bleue qui a traversé le temps : une signature, un mot gentil, peut-être un "À mon ami..." ou un "Souvenir de...". Ces inscriptions transforment l'objet industriel en archive intime, en provenance directe d'une collection personnelle. C'est la "provenance" qui fait la valeur affective, bien au-delà de la cote Discogs.
+
+Côté sillon, le **VG- disque** annonce une écoute bruitée. Attendez-vous à un fond de surface permanent, des craquements sur les attaques de transitoires (percussions, attaques de guitare criolla), et peut-être quelques sauts si les sillons profonds ont été attaqués par une pointe usée. La dynamique sera compressée par le bruit de fond, mais la chaleur analogique du pressage d'époque — probablement un mastering "flat" sans compression numérique — devrait préserver le timbre des instruments traditionnels (charango, quena, bombo). Un nettoyage profond à la machine (type Okki Nokki ou Keith Monks) est impératif avant toute tentative de numérisation ou d'écoute plaisir, pour tenter de récupérer le signal sous la crasse incrustée.
+
+**[-> Découvrir : Amerique Du Sud - Chants Et Rythmes (33T)](https://metaloxgit.github.io/music-records/item_3051852720.html){:target="_blank" rel="noopener"}**
+
+## Le rituel du bain ultrasonique : redonner vie aux sillons profonds
+
+Face à un vinyle noté VG- avec bruit de fond marqué, le passage par la case **nettoyage ultrasonique** n'est pas une option, c'est une nécessité technique. La brosse carbone et le liquide de surface ne font que déplacer la poussière en surface ; elles n'atteignent pas les microparticules logées au fond du sillon en V, là où la pointe de lecture (stylus) passe réellement. Un bac à ultrasons (fréquence 40 kHz standard) avec un détergent spécifique (type Tergitol 15-S-7 ou solution du commerce sans alcool isopropylique pur) crée un effet de cavitation : des millions de micro-bulles implosent au contact du sillon, éjectant la crasse sans abrasion mécanique.
+
+**Protocole disquaire :** Prérinçage à l'eau déminéralisée tiède (35-40°C max) pour évacuer les gros résidus. Cycle ultrasonique de 2 à 3 minutes par face. Rinçage final obligatoire à l'eau déminéralisée froide pour chasser tout résidu tensioactif. Séchage vertical sur un rack dédié, pointe en bas, dans un environnement sans poussière (idéalement sous hotte à flux laminaire ou simple boîte de séchage "home made" avec filtre HEPA). Ne jamais essuyer avec un chiffon, même microfibre : cela crée des micro-rayures radiales fatales. Une fois sec, le disque retrouve souvent 1 à 2 grades Goldmine sur le plan sonore, révélant des harmoniques masquées par le "gris" du VG-. C'est la seule méthode pour respecter la gravure d'origine de ce pressage PILPUL.
