@@ -670,7 +670,7 @@ def main():
     # 3. Assemblage du fichier Markdown final (Frontmatter + Image + Contenu AI)
     full_post = f"""---
 layout: post
-title: "{target_artist} en vinyle ou CD d'occasion (collector)"
+title: "{target_artist} en vinyle ou CD collector - Astuce/Conseil de collectionneur"
 artist: "{target_artist}"
 ---
 
