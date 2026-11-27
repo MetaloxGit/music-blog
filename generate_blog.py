@@ -25,63 +25,105 @@ MIN_PRODUCTS = 1  # Seuil minimal de produits pour un artiste
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 
 
-def _draw_music_note(draw, cx, cy, size, color, width=2):
-    """Dessine une note de musique (croche) vectorielle discrète."""
-    head_w = size * 0.45
-    head_h = size * 0.32
-    # Tête de note inclinée approximée par ellipse
-    draw.ellipse(
-        [cx - head_w, cy + size * 0.25 - head_h / 2, cx + head_w * 0.3, cy + size * 0.25 + head_h / 2],
-        fill=color,
-    )
-    stem_x = cx + head_w * 0.3
-    stem_top = cy - size * 0.45
-    stem_bottom = cy + size * 0.25
-    draw.line([(stem_x, stem_bottom), (stem_x, stem_top)], fill=color, width=width)
-    # Crochet
-    draw.arc(
-        [stem_x, stem_top, stem_x + size * 0.45, stem_top + size * 0.45],
-        start=270,
-        end=90,
-        fill=color,
-        width=width,
-    )
 
 
-def _draw_star(draw, cx, cy, radius, color, width=2):
-    """Dessine une étoile à 4 ou 5 branches en contour fin."""
-    points = []
+def _draw_with_shadow(ov_draw, draw_fn, cx, cy, size, fill_color, shadow_offset=(3, 3), shadow_alpha=150):
+    """Dessine un motif vectoriel avec une légère ombre noire pour le contraste."""
+    shadow_color = (0, 0, 0, shadow_alpha)
+    draw_fn(ov_draw, cx + shadow_offset[0], cy + shadow_offset[1], size, shadow_color)
+    draw_fn(ov_draw, cx, cy, size, fill_color)
+
+
+def _motif_note(draw, cx, cy, size, color):
+    """Note de musique (croche) bien visible."""
+    w = max(3, int(size * 0.10))
+    rx = size * 0.24
+    ry = size * 0.17
+    ny = cy + size * 0.26
+    draw.ellipse([cx - rx * 1.2, ny - ry, cx + rx * 0.6, ny + ry], fill=color)
+    stem_x = cx + rx * 0.6
+    stem_top = cy - size * 0.42
+    draw.line([(stem_x, ny), (stem_x, stem_top)], fill=color, width=w)
+    draw.arc([stem_x, stem_top, stem_x + size * 0.38, stem_top + size * 0.38], start=270, end=90, fill=color, width=w)
+
+
+def _motif_star(draw, cx, cy, size, color):
+    """Étoile à 5 branches percutante."""
+    w = max(2, int(size * 0.08))
+    r_outer = size * 0.48
+    r_inner = size * 0.21
+    pts = []
     for i in range(10):
-        angle = math.radians(i * 36 - 90)
-        r = radius if i % 2 == 0 else radius * 0.42
-        points.append((cx + r * math.cos(angle), cy + r * math.sin(angle)))
-    draw.polygon(points, outline=color)
-    if width > 1:
-        draw.line(points + [points[0]], fill=color, width=width)
+        ang = math.radians(i * 36 - 90)
+        r = r_outer if i % 2 == 0 else r_inner
+        pts.append((cx + r * math.cos(ang), cy + r * math.sin(ang)))
+    draw.polygon(pts, fill=color, outline=color)
+    draw.line(pts + [pts[0]], fill=color, width=w)
 
 
-def _draw_heart(draw, cx, cy, size, color, width=2):
-    """Dessine un cœur vectoriel discret."""
-    r = size * 0.28
-    draw.ellipse([cx - r * 1.4, cy - r * 0.9, cx + r * 0.2, cy + r * 0.7], outline=color, width=width)
-    draw.ellipse([cx - r * 0.2, cy - r * 0.9, cx + r * 1.4, cy + r * 0.7], outline=color, width=width)
-    draw.line([(cx - r * 1.32, cy + r * 0.1), (cx, cy + r * 1.55)], fill=color, width=width)
-    draw.line([(cx + r * 1.32, cy + r * 0.1), (cx, cy + r * 1.55)], fill=color, width=width)
+def _motif_heart(draw, cx, cy, size, color):
+    """Cœur plein bien marqué."""
+    r = size * 0.22
+    draw.ellipse([cx - r * 1.35, cy - r * 0.85, cx + r * 0.15, cy + r * 0.65], fill=color)
+    draw.ellipse([cx - r * 0.15, cy - r * 0.85, cx + r * 1.35, cy + r * 0.65], fill=color)
+    draw.polygon(
+        [(cx - r * 1.28, cy + r * 0.15), (cx + r * 1.28, cy + r * 0.15), (cx, cy + r * 1.55)],
+        fill=color,
+    )
 
 
-def _draw_vinyl_mini(draw, cx, cy, radius, color, width=2):
-    """Dessine un petit disque vinyle avec sillon et macaron central."""
-    draw.ellipse([cx - radius, cy - radius, cx + radius, cy + radius], outline=color, width=width)
-    inner = radius * 0.65
-    draw.ellipse([cx - inner, cy - inner, cx + inner, cy + inner], outline=color, width=1)
-    label_r = radius * 0.28
-    draw.ellipse([cx - label_r, cy - label_r, cx + label_r, cy + label_r], outline=color, width=width)
+def _motif_vinyl(draw, cx, cy, size, color):
+    """Mini vinyle avec macaron central."""
+    r = size * 0.44
+    w = max(2, int(size * 0.07))
+    draw.ellipse([cx - r, cy - r, cx + r, cy + r], outline=color, width=w)
+    r2 = r * 0.66
+    draw.ellipse([cx - r2, cy - r2, cx + r2, cy + r2], outline=color, width=max(1, w - 1))
+    r3 = r * 0.24
+    draw.ellipse([cx - r3, cy - r3, cx + r3, cy + r3], fill=color)
+
+
+def _motif_bolt(draw, cx, cy, size, color):
+    """Éclair dynamique."""
+    s = size * 0.48
+    pts = [
+        (cx + s * 0.15, cy - s),
+        (cx - s * 0.65, cy + s * 0.05),
+        (cx - s * 0.05, cy + s * 0.05),
+        (cx - s * 0.20, cy + s),
+        (cx + s * 0.65, cy - s * 0.10),
+        (cx + s * 0.05, cy - s * 0.10),
+    ]
+    draw.polygon(pts, fill=color)
+
+
+def _motif_wave(draw, cx, cy, size, color):
+    """Barres d'onde / égaliseur audio."""
+    bar_w = max(4, int(size * 0.11))
+    gap = max(4, int(size * 0.08))
+    heights = [0.35, 0.75, 1.0, 0.65, 0.40]
+    total_w = len(heights) * bar_w + (len(heights) - 1) * gap
+    start_x = cx - total_w / 2
+    max_h = size * 0.75
+    for i, h_ratio in enumerate(heights):
+        bh = max_h * h_ratio
+        x0 = start_x + i * (bar_w + gap)
+        y0 = cy - bh / 2
+        y1 = cy + bh / 2
+        draw.rounded_rectangle([x0, y0, x0 + bar_w, y1], radius=max(2, bar_w // 2), fill=color)
+
+
+def _motif_diamond(draw, cx, cy, size, color):
+    """Losange / diamant lumineux."""
+    r = size * 0.45
+    pts = [(cx, cy - r), (cx + r * 0.85, cy), (cx, cy + r), (cx - r * 0.85, cy)]
+    draw.polygon(pts, fill=color)
 
 
 def generate_cover_image(artist, title, format_name, output_path):
     """
-    Génère une pochette 500x500 WebP ultra-légère (~4-6 Ko)
-    avec dégradé inversé (centre sombre, bords colorés) et motifs variés.
+    Génère une pochette 500x500 WebP légère avec dégradé inversé
+    (centre sombre, bords colorés) et motifs grands, contrastés et variés.
     """
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
@@ -99,17 +141,14 @@ def generate_cover_image(artist, title, format_name, output_path):
         label_badge = "MUSIQUE"
 
     width, height = 500, 500
-
-    # Empreinte déterministe basée sur l'artiste + le titre
     seed_str = f"{artist_clean}|{title_clean}".encode("utf-8")
     h = hashlib.md5(seed_str).hexdigest()
 
-    # Couleur vive vers les bords, centre très sombre pour la lisibilité du texte blanc
+    # Dégradé inversé : centre très sombre (15%), bords vifs
     r2, g2, b2 = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
     r2, g2, b2 = min(220, r2 + 50), min(220, g2 + 50), min(220, b2 + 50)
     r1, g1, b1 = int(r2 * 0.15), int(g2 * 0.15), int(b2 * 0.15)
 
-    # Fond dégradé radial
     img = Image.new("RGB", (width, height))
     draw = ImageDraw.Draw(img)
     cx, cy = width / 2, height / 2
@@ -122,12 +161,11 @@ def generate_cover_image(artist, title, format_name, output_path):
         b_c = int(b1 * (1 - ratio) + b2 * ratio)
         draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=(r_c, g_c, b_c))
 
-    # Calque transparent pour motifs et filigrane
+    # Calque transparent pour filigrane et motifs percutants
     overlay = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     ov_draw = ImageDraw.Draw(overlay)
-    watermark_color = (255, 255, 255, 18)
+    watermark_color = (255, 255, 255, 16)
 
-    # Filigrane principal selon format + variante selon le hash
     variant = int(h[6:8], 16) % 4
     if "cd" in raw_fmt:
         ov_draw.ellipse([90, 90, 410, 410], outline=watermark_color, width=5)
@@ -141,25 +179,40 @@ def generate_cover_image(artist, title, format_name, output_path):
         for radius in range(215, 60, -step):
             ov_draw.ellipse([cx - radius, cy - radius, cx + radius, cy + radius], outline=watermark_color, width=2)
 
-    # 3 symboles décoratifs discrets placés autour de la zone centrale
-    motif_color = (255, 255, 255, 34)
-    motif_spots = [
-        (85, 115, 26),
-        (135, 370, 22),
-        (395, 355, 24),
+    # Palette de couleurs vives et contrastées (quasi opaques : alpha = 225)
+    punchy_palette = [
+        (0, 240, 255, 225),   # Cyan électrique
+        (255, 210, 0, 225),   # Jaune doré
+        (255, 75, 145, 225),  # Rose / corail vif
+        (80, 255, 155, 225),  # Vert menthe néon
+        (255, 135, 45, 225),  # Orange punchy
+        (175, 120, 255, 225), # Violet lumineux
     ]
-    motifs = ["note", "star", "heart", "vinyl"]
+
+    motif_fns = {
+        "note": _motif_note,
+        "star": _motif_star,
+        "heart": _motif_heart,
+        "vinyl": _motif_vinyl,
+        "bolt": _motif_bolt,
+        "wave": _motif_wave,
+        "diamond": _motif_diamond,
+    }
+    motif_keys = list(motif_fns.keys())
+
+    # 3 emplacements élargis autour du centre (évite le bloc titre central et le badge OCCASION)
+    motif_spots = [
+        (82, 112, 46),
+        (125, 365, 42),
+        (405, 355, 44),
+    ]
 
     for idx, (mx, my, msize) in enumerate(motif_spots):
-        kind = motifs[(int(h[8 + idx * 2 : 10 + idx * 2], 16) + idx) % len(motifs)]
-        if kind == "note":
-            _draw_music_note(ov_draw, mx, my, msize, motif_color, width=2)
-        elif kind == "star":
-            _draw_star(ov_draw, mx, my, msize * 0.7, motif_color, width=2)
-        elif kind == "heart":
-            _draw_heart(ov_draw, mx, my, msize, motif_color, width=2)
-        else:
-            _draw_vinyl_mini(ov_draw, mx, my, msize * 0.65, motif_color, width=2)
+        m_idx = (int(h[8 + idx * 2 : 10 + idx * 2], 16) + idx * 2) % len(motif_keys)
+        c_idx = (int(h[14 + idx * 2 : 16 + idx * 2], 16) + idx) % len(punchy_palette)
+        fn = motif_fns[motif_keys[m_idx]]
+        col = punchy_palette[c_idx]
+        _draw_with_shadow(ov_draw, fn, mx, my, msize, col, shadow_offset=(3, 3), shadow_alpha=150)
 
     img = Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
     draw = ImageDraw.Draw(img)
@@ -210,6 +263,7 @@ def generate_cover_image(artist, title, format_name, output_path):
     draw.text((58, 460), label_badge, fill=(255, 255, 255), font=font_icon, anchor="lm")
 
     img.save(output_path, "WEBP", quality=50, method=6)
+
 
 
 def slugify(text):
