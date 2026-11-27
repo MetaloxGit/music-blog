@@ -25,19 +25,70 @@ MIN_PRODUCTS = 1  # Seuil minimal de produits pour un artiste
 GITHUB_TOKEN = os.environ.get("GITHUB_TOKEN")
 
 
+def _draw_music_note(draw, cx, cy, size, color, width=2):
+    """Dessine une note de musique (croche) vectorielle discrète."""
+    head_w = size * 0.45
+    head_h = size * 0.32
+    # Tête de note inclinée approximée par ellipse
+    draw.ellipse(
+        [cx - head_w, cy + size * 0.25 - head_h / 2, cx + head_w * 0.3, cy + size * 0.25 + head_h / 2],
+        fill=color,
+    )
+    stem_x = cx + head_w * 0.3
+    stem_top = cy - size * 0.45
+    stem_bottom = cy + size * 0.25
+    draw.line([(stem_x, stem_bottom), (stem_x, stem_top)], fill=color, width=width)
+    # Crochet
+    draw.arc(
+        [stem_x, stem_top, stem_x + size * 0.45, stem_top + size * 0.45],
+        start=270,
+        end=90,
+        fill=color,
+        width=width,
+    )
+
+
+def _draw_star(draw, cx, cy, radius, color, width=2):
+    """Dessine une étoile à 4 ou 5 branches en contour fin."""
+    points = []
+    for i in range(10):
+        angle = math.radians(i * 36 - 90)
+        r = radius if i % 2 == 0 else radius * 0.42
+        points.append((cx + r * math.cos(angle), cy + r * math.sin(angle)))
+    draw.polygon(points, outline=color)
+    if width > 1:
+        draw.line(points + [points[0]], fill=color, width=width)
+
+
+def _draw_heart(draw, cx, cy, size, color, width=2):
+    """Dessine un cœur vectoriel discret."""
+    r = size * 0.28
+    draw.ellipse([cx - r * 1.4, cy - r * 0.9, cx + r * 0.2, cy + r * 0.7], outline=color, width=width)
+    draw.ellipse([cx - r * 0.2, cy - r * 0.9, cx + r * 1.4, cy + r * 0.7], outline=color, width=width)
+    draw.line([(cx - r * 1.32, cy + r * 0.1), (cx, cy + r * 1.55)], fill=color, width=width)
+    draw.line([(cx + r * 1.32, cy + r * 0.1), (cx, cy + r * 1.55)], fill=color, width=width)
+
+
+def _draw_vinyl_mini(draw, cx, cy, radius, color, width=2):
+    """Dessine un petit disque vinyle avec sillon et macaron central."""
+    draw.ellipse([cx - radius, cy - radius, cx + radius, cy + radius], outline=color, width=width)
+    inner = radius * 0.65
+    draw.ellipse([cx - inner, cy - inner, cx + inner, cy + inner], outline=color, width=1)
+    label_r = radius * 0.28
+    draw.ellipse([cx - label_r, cy - label_r, cx + label_r, cy + label_r], outline=color, width=width)
+
+
 def generate_cover_image(artist, title, format_name, output_path):
     """
-    Génère une image 500x500 WebP ultra-léger (~4-6 Ko)
-    avec texte propre en bas à gauche ("MUSIQUE", "DISQUE VINYLE", etc.).
+    Génère une pochette 500x500 WebP ultra-légère (~4-6 Ko)
+    avec dégradé inversé (centre sombre, bords colorés) et motifs variés.
     """
     os.makedirs(os.path.dirname(output_path), exist_ok=True)
 
-    # 1. Nettoyage des textes
-    artist = html.unescape(artist or "Artiste Inconnu")
-    title = html.unescape(title or "Album")
+    artist_clean = html.unescape(artist or "Artiste Inconnu")
+    title_clean = html.unescape(title or "Album")
     raw_fmt = html.unescape(format_name or "").lower()
 
-    # 2. Choix du texte propre pour le badge en bas à gauche
     if "cd" in raw_fmt:
         label_badge = "CD AUDIO"
     elif "cassette" in raw_fmt or "k7" in raw_fmt:
@@ -49,16 +100,16 @@ def generate_cover_image(artist, title, format_name, output_path):
 
     width, height = 500, 500
 
-    # 3. Couleurs dynamiques (Hachage Artiste)
-    h = hashlib.md5(artist.encode("utf-8")).hexdigest()
-    # Couleur vive projetée vers les BORDS
+    # Empreinte déterministe basée sur l'artiste + le titre
+    seed_str = f"{artist_clean}|{title_clean}".encode("utf-8")
+    h = hashlib.md5(seed_str).hexdigest()
+
+    # Couleur vive vers les bords, centre très sombre pour la lisibilité du texte blanc
     r2, g2, b2 = int(h[0:2], 16), int(h[2:4], 16), int(h[4:6], 16)
     r2, g2, b2 = min(220, r2 + 50), min(220, g2 + 50), min(220, b2 + 50)
-    
-    # Couleur très sombre (15%) au CENTRE pour faire ressortir le texte blanc
     r1, g1, b1 = int(r2 * 0.15), int(g2 * 0.15), int(b2 * 0.15)
 
-    # 4. Fond Dégradé Radial (500x500)
+    # Fond dégradé radial
     img = Image.new("RGB", (width, height))
     draw = ImageDraw.Draw(img)
     cx, cy = width / 2, height / 2
@@ -71,11 +122,13 @@ def generate_cover_image(artist, title, format_name, output_path):
         b_c = int(b1 * (1 - ratio) + b2 * ratio)
         draw.ellipse([cx - r, cy - r, cx + r, cy + r], fill=(r_c, g_c, b_c))
 
-    # 5. Filigrane discret selon le format
+    # Calque transparent pour motifs et filigrane
     overlay = Image.new("RGBA", (width, height), (0, 0, 0, 0))
     ov_draw = ImageDraw.Draw(overlay)
     watermark_color = (255, 255, 255, 18)
 
+    # Filigrane principal selon format + variante selon le hash
+    variant = int(h[6:8], 16) % 4
     if "cd" in raw_fmt:
         ov_draw.ellipse([90, 90, 410, 410], outline=watermark_color, width=5)
         ov_draw.ellipse([210, 210, 290, 290], outline=watermark_color, width=3)
@@ -84,13 +137,34 @@ def generate_cover_image(artist, title, format_name, output_path):
         ov_draw.ellipse([155, 210, 225, 280], outline=watermark_color, width=3)
         ov_draw.ellipse([275, 210, 345, 280], outline=watermark_color, width=3)
     else:
-        for radius in range(215, 60, -18):
+        step = 18 if variant % 2 == 0 else 24
+        for radius in range(215, 60, -step):
             ov_draw.ellipse([cx - radius, cy - radius, cx + radius, cy + radius], outline=watermark_color, width=2)
+
+    # 3 symboles décoratifs discrets placés autour de la zone centrale
+    motif_color = (255, 255, 255, 34)
+    motif_spots = [
+        (85, 115, 26),
+        (135, 370, 22),
+        (395, 355, 24),
+    ]
+    motifs = ["note", "star", "heart", "vinyl"]
+
+    for idx, (mx, my, msize) in enumerate(motif_spots):
+        kind = motifs[(int(h[8 + idx * 2 : 10 + idx * 2], 16) + idx) % len(motifs)]
+        if kind == "note":
+            _draw_music_note(ov_draw, mx, my, msize, motif_color, width=2)
+        elif kind == "star":
+            _draw_star(ov_draw, mx, my, msize * 0.7, motif_color, width=2)
+        elif kind == "heart":
+            _draw_heart(ov_draw, mx, my, msize, motif_color, width=2)
+        else:
+            _draw_vinyl_mini(ov_draw, mx, my, msize * 0.65, motif_color, width=2)
 
     img = Image.alpha_composite(img.convert("RGBA"), overlay).convert("RGB")
     draw = ImageDraw.Draw(img)
 
-    # 6. Polices adaptées à 500px
+    # Polices
     try:
         font_artist = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf", 26)
         font_title = ImageFont.truetype("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf", 17)
@@ -99,38 +173,42 @@ def generate_cover_image(artist, title, format_name, output_path):
     except Exception:
         font_artist = font_title = font_badge = font_icon = ImageFont.load_default()
 
-    # 7. Macaron "OCCASION" (En haut à droite)
+    # Macaron OCCASION
     draw.ellipse([390, 30, 470, 110], fill=(255, 204, 0))
     draw.text((430, 70), "OCCASION", fill=(0, 0, 0), font=font_badge, anchor="mm")
 
-    # 8. Textes principaux
-    artist_text = artist.upper()
+    # Textes centraux
+    artist_text = artist_clean.upper()
     if len(artist_text) > 28:
         artist_text = artist_text[:25] + "..."
 
-    title_text = title
+    title_text = title_clean
     if len(title_text) > 40:
         title_text = title_text[:37] + "..."
 
     draw.text((250, 225), artist_text, fill=(255, 255, 255), font=font_artist, anchor="mm")
     draw.text((250, 262), title_text, fill=(220, 220, 220), font=font_title, anchor="mm")
 
-    # 9. Rectangle Noir + Texte Propre (En bas à gauche)
-    draw.rounded_rectangle([25, 445, 185, 475], radius=6, fill=(0, 0, 0, 140), outline=(255, 255, 255, 70), width=1)
+    # Badge bas gauche
+    draw.rounded_rectangle(
+        [25, 445, 185, 475],
+        radius=6,
+        fill=(0, 0, 0),
+        outline=(255, 255, 255),
+        width=1,
+    )
 
-    # Icône vectorielle blanche
     if "cd" in raw_fmt:
         draw.ellipse([35, 454, 51, 466], outline=(255, 255, 255), width=1)
         draw.ellipse([41, 459, 45, 461], fill=(255, 255, 255))
     elif "cassette" in raw_fmt or "k7" in raw_fmt:
         draw.rectangle([35, 455, 51, 465], outline=(255, 255, 255), width=1)
-    else: # Vinyle / Musique
+    else:
         draw.ellipse([35, 454, 51, 466], outline=(255, 255, 255), width=1)
         draw.ellipse([41, 458, 45, 462], outline=(255, 255, 255), width=1)
 
     draw.text((58, 460), label_badge, fill=(255, 255, 255), font=font_icon, anchor="lm")
 
-    # 10. Sauvegarde WebP Haute Compression (~4-6 Ko)
     img.save(output_path, "WEBP", quality=50, method=6)
 
 
